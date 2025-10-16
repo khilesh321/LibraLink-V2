@@ -96,13 +96,47 @@ export default function MyTransactions() {
   }
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const calculateLateFees = (transaction) => {
+    // Only calculate fees for issued books that are overdue
+    if (transaction.action !== 'issue' || !transaction.due_date) {
+      return 0
+    }
+
+    const dueDate = new Date(transaction.due_date)
+    const today = new Date()
+
+    // Check if the book is still issued (no return transaction after this issue)
+    const transactionIndex = transactions.findIndex(t => t === transaction)
+    const subsequentTransactions = transactions.slice(0, transactionIndex)
+    const hasReturn = subsequentTransactions.some(t =>
+      t.book_id === transaction.book_id && t.action === 'return'
+    )
+
+    // If book has been returned, no late fees
+    if (hasReturn) {
+      return 0
+    }
+
+    // If due date is in the future, no late fees
+    if (dueDate > today) {
+      return 0
+    }
+
+    // Calculate days overdue
+    const timeDiff = today.getTime() - dueDate.getTime()
+    const daysOverdue = Math.ceil(timeDiff / (1000 * 3600 * 24))
+
+    // 5 rupees per day
+    return daysOverdue * 5
   }
 
   const handleExportPDF = async () => {
@@ -217,6 +251,9 @@ export default function MyTransactions() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Due Date
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Late Fees
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -261,6 +298,18 @@ export default function MyTransactions() {
                         ) : (
                           <span className="text-gray-400">-</span>
                         )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {(() => {
+                          const fees = calculateLateFees(transaction)
+                          return fees > 0 ? (
+                            <span className="text-red-600 font-semibold">
+                              ₹{fees}
+                            </span>
+                          ) : (
+                            <span className="text-green-600">-</span>
+                          )
+                        })()}
                       </td>
                     </tr>
                   ))}
