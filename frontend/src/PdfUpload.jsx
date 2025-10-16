@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient'
 
 export default function PdfUpload() {
   const [file, setFile] = useState(null)
+  const [documentName, setDocumentName] = useState('')
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -10,15 +11,22 @@ export default function PdfUpload() {
     const selectedFile = e.target.files[0]
     if (selectedFile && selectedFile.type === 'application/pdf') {
       setFile(selectedFile)
+      // Set initial document name from filename (without extension)
+      const nameWithoutExt = selectedFile.name.replace(/\.pdf$/i, '')
+      setDocumentName(nameWithoutExt)
       setMessage('')
     } else {
       setFile(null)
+      setDocumentName('')
       setMessage('Please select a valid PDF file.')
     }
   }
 
   const handleUpload = async () => {
-    if (!file) return
+    if (!file || !documentName.trim()) {
+      setMessage('Please select a PDF file and enter a document name.')
+      return
+    }
 
     setUploading(true)
     setMessage('')
@@ -28,19 +36,40 @@ export default function PdfUpload() {
       const fileName = `${Date.now()}.${fileExt}`
       const filePath = `pdfs/${fileName}`
 
-      const { data, error } = await supabase.storage
-        .from('books') // Make sure to create this bucket in Supabase
+      // Upload file to storage
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('books')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
         })
 
-      if (error) {
-        throw error
+      if (storageError) {
+        throw storageError
+      }
+
+      // Save document metadata to database
+      const { data: dbData, error: dbError } = await supabase
+        .from('documents')
+        .insert([
+          {
+            name: documentName.trim(),
+            filename: fileName,
+            filepath: filePath,
+            size: file.size,
+            uploaded_by: (await supabase.auth.getUser()).data.user?.id
+          }
+        ])
+
+      if (dbError) {
+        // If database insert fails, try to delete the uploaded file
+        await supabase.storage.from('books').remove([filePath])
+        throw dbError
       }
 
       setMessage('PDF uploaded successfully!')
       setFile(null)
+      setDocumentName('')
       // Reset file input
       document.getElementById('pdf-input').value = ''
     } catch (error) {
@@ -68,13 +97,30 @@ export default function PdfUpload() {
 
       {file && (
         <div className="mb-4">
-          <p className="text-sm text-gray-600">Selected: {file.name}</p>
+          <label htmlFor="document-name" className="block text-sm font-medium text-gray-700 mb-2">
+            Document Name
+          </label>
+          <input
+            id="document-name"
+            type="text"
+            value={documentName}
+            onChange={(e) => setDocumentName(e.target.value)}
+            placeholder="Enter document name"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={uploading}
+          />
+        </div>
+      )}
+
+      {file && (
+        <div className="mb-4">
+          <p className="text-sm text-gray-600">Selected file: {file.name}</p>
         </div>
       )}
 
       <button
         onClick={handleUpload}
-        disabled={!file || uploading}
+        disabled={!file || !documentName.trim() || uploading}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-md transition duration-200"
       >
         {uploading ? 'Uploading...' : 'Upload PDF'}

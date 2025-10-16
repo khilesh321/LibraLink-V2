@@ -12,68 +12,70 @@ export default function Resources() {
 
   const fetchPdfs = async () => {
     try {
-      const { data, error } = await supabase.storage
-        .from('books')
-        .list('pdfs', {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: 'created_at', order: 'desc' }
-        })
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .order('created_at', { ascending: false })
 
       if (error) {
-        if (error.message.includes('Bucket not found')) {
-          throw new Error('The storage bucket does not exist. Please create a bucket named "books" in your Supabase Storage.')
-        }
         throw error
       }
 
       setPdfs(data || [])
     } catch (error) {
       console.error('Error fetching PDFs:', error)
-      setError(error.message || 'Failed to load PDFs')
+      setError('Failed to load documents')
     } finally {
       setLoading(false)
     }
   }
 
-  const downloadPdf = async (fileName) => {
+  const downloadPdf = async (doc) => {
     try {
       // Create a signed URL for download
       const { data: signedUrlData, error } = await supabase.storage
         .from('books')
-        .createSignedUrl(`pdfs/${fileName}`, 300) // 5 minutes expiry
+        .createSignedUrl(doc.filepath, 300) // 5 minutes expiry
 
       if (error) {
-        if (error.message.includes('Bucket not found')) {
-          alert('The storage bucket does not exist. Please create a bucket named "books" in your Supabase Storage.')
-          return
-        }
         throw error
       }
 
       if (signedUrlData?.signedUrl) {
+        // Fetch the file and create a download link
+        const response = await fetch(signedUrlData.signedUrl)
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+
         // Create a temporary link and trigger download
         const a = document.createElement('a')
-        a.href = signedUrlData.signedUrl
-        a.download = fileName
+        a.href = url
+        a.download = doc.name + '.pdf'
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
+
+        // Clean up the object URL
+        URL.revokeObjectURL(url)
       } else {
         throw new Error('Could not generate download URL')
       }
     } catch (error) {
       console.error('Error downloading PDF:', error)
-      alert('Failed to download PDF')
+      alert('Failed to download PDF. Please try again.')
     }
   }
 
-  const readOnline = async (fileName) => {
+  const readOnline = async (doc) => {
     try {
       // First try to get a public URL
       const { data: publicUrlData } = supabase.storage
         .from('books')
-        .getPublicUrl(`pdfs/${fileName}`)
+        .getPublicUrl(doc.filepath)
 
       if (publicUrlData?.publicUrl) {
         // Check if the public URL works by making a HEAD request
@@ -87,13 +89,9 @@ export default function Resources() {
       // If public URL doesn't work, create a signed URL (expires in 1 hour)
       const { data: signedUrlData, error: signedError } = await supabase.storage
         .from('books')
-        .createSignedUrl(`pdfs/${fileName}`, 3600) // 1 hour expiry
+        .createSignedUrl(doc.filepath, 3600) // 1 hour expiry
 
       if (signedError) {
-        if (signedError.message.includes('Bucket not found')) {
-          alert('The storage bucket does not exist. Please create a bucket named "books" in your Supabase Storage.')
-          return
-        }
         throw signedError
       }
 
@@ -169,7 +167,7 @@ export default function Resources() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {pdfs.map((pdf) => (
-              <div key={pdf.name} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div key={pdf.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="p-6">
                   <div className="flex items-center mb-4">
                     <div className="text-red-500 text-2xl mr-3">📄</div>
@@ -181,20 +179,20 @@ export default function Resources() {
                         {new Date(pdf.created_at).toLocaleDateString()}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {(pdf.metadata?.size / 1024 / 1024).toFixed(2)} MB
+                        {(pdf.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
                   </div>
 
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => readOnline(pdf.name)}
+                      onClick={() => readOnline(pdf)}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-3 rounded transition duration-200"
                     >
                       Read Online
                     </button>
                     <button
-                      onClick={() => downloadPdf(pdf.name)}
+                      onClick={() => downloadPdf(pdf)}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded transition duration-200"
                     >
                       Download
