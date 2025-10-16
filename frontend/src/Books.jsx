@@ -208,13 +208,13 @@ export default function Books() {
             const isAvailable = book.available
 
             return (
-              <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <div className="aspect-w-3 aspect-h-4 group bg-gray-200">
+              <div key={book.id} className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[72.5vh] duration-300">
+                <div className="bg-gray-200">
                   {book.cover_image_url ? (
                     <img
                       src={book.cover_image_url}
                       alt={book.title}
-                      className="w-3/4 object-cover group-hover:scale-x-0 transition duration-300"
+                      className="w-full object-cover md:absolute md:group-hover:scale-x-0 mx-auto transition duration-300"
                     />
                   ) : (
                     <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
@@ -223,7 +223,7 @@ export default function Books() {
                   )}
                 </div>
 
-                <div className="p-4">
+                <div className="p-4 md:mt-5">
                   <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{book.title}</h3>
 
                   {book.author && (
