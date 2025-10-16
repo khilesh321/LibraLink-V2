@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, BookOpen, Calendar, Clock, AlertCircle, CheckCircle, Download } from 'lucide-react'
-import { generateTransactionsPDF } from './pdfUtils'
+import { generateTransactionsPDF, generateTransactionsCSV } from './pdfUtils'
 
 export default function MyTransactions() {
   const { role, loading: roleLoading } = useUserRole()
@@ -121,6 +121,21 @@ export default function MyTransactions() {
     }
   }
 
+  const handleExportCSV = () => {
+    try {
+      generateTransactionsCSV(
+        transactions,
+        books,
+        {}, // No users data for personal transactions
+        'My Transaction History',
+        user
+      )
+    } catch (error) {
+      console.error('Error exporting CSV:', error)
+      alert('Failed to export CSV. Please try again.')
+    }
+  }
+
   if (loading || roleLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -164,6 +179,14 @@ export default function MyTransactions() {
               >
                 <Download className="w-4 h-4 mr-2" />
                 Export PDF
+              </button>
+              <button
+                onClick={handleExportCSV}
+                disabled={transactions.length === 0}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
               </button>
               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
                 {user?.email?.charAt(0).toUpperCase()}
