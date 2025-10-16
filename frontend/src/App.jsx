@@ -13,12 +13,14 @@ import ForgotPassword from './ForgotPassword.jsx'
 import ResetPassword from './ResetPassword.jsx'
 import Register from './Register.jsx'
 import Footer from './Footer';
+import { ReactLenis } from 'lenis/react'
 
 export default function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen">
         <Navbar />
+        <ReactLenis root>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -33,6 +35,7 @@ export default function App() {
           <Route path="/books/add" element={<AddBook />} />
           <Route path="/my-transactions" element={<MyTransactions />} />
         </Routes>
+        </ReactLenis>
         <Footer />
       </div>
     </BrowserRouter>
