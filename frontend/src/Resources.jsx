@@ -7,6 +7,7 @@ export default function Resources() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedFlipbook, setSelectedFlipbook] = useState(null)
+  const [readPopup, setReadPopup] = useState(null)
   const { role } = useUserRole()
 
   useEffect(() => {
@@ -74,13 +75,6 @@ export default function Resources() {
   }
 
   const readOnline = async (doc) => {
-    // If flipbook URL exists, show flipbook modal
-    if (doc.flipbook_url) {
-      setSelectedFlipbook(doc)
-      return
-    }
-
-    // Fallback to regular PDF viewing
     try {
       // First try to get a public URL
       const { data: publicUrlData } = supabase.storage
@@ -113,6 +107,21 @@ export default function Resources() {
     } catch (error) {
       console.error('Error reading PDF:', error)
       alert('Failed to open PDF. The file might not exist or you may not have permission to access it.')
+    }
+  }
+
+  const openReadPopup = (doc) => {
+    setReadPopup(doc)
+  }
+
+  const handleReadOption = async (option) => {
+    const doc = readPopup
+    setReadPopup(null)
+
+    if (option === 'flipbook') {
+      setSelectedFlipbook(doc)
+    } else if (option === 'online') {
+      await readOnline(doc)
     }
   }
 
@@ -224,16 +233,10 @@ export default function Resources() {
 
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => readOnline(pdf)}
+                      onClick={() => openReadPopup(pdf)}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-3 rounded transition duration-200 flex items-center justify-center"
                     >
-                      {pdf.flipbook_url ? (
-                        <>
-                          📖 Read as Flipbook
-                        </>
-                      ) : (
-                        'Read Online'
-                      )}
+                      📖 Read
                     </button>
                     <button
                       onClick={() => downloadPdf(pdf)}
@@ -276,6 +279,41 @@ export default function Resources() {
                   Interactive flipbook powered by FlipHTML5
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Read Options Popup */}
+      {readPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Read Options</h3>
+              <button
+                onClick={() => setReadPopup(null)}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              {readPopup.flipbook_url && (
+                <button
+                  onClick={() => handleReadOption('flipbook')}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+                >
+                  <span>📖</span>
+                  <span>Read as Flipbook</span>
+                </button>
+              )}
+              <button
+                onClick={() => handleReadOption('online')}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+              >
+                <span>🌐</span>
+                <span>Read Online</span>
+              </button>
             </div>
           </div>
         </div>
