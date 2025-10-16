@@ -8,6 +8,7 @@ import {
   X,
   User,
   LogOut,
+  LogIn,
   Home,
   ChevronDown,
   Upload,
@@ -23,6 +24,7 @@ export default function Navbar() {
   const { role, loading: roleLoading } = useUserRole()
   const [user, setUser] = useState(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const location = useLocation()
   const navigate = useNavigate()
@@ -45,8 +47,11 @@ export default function Navbar() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown-container')) {
+      if (!event.target.closest('.dropdown-container') && !event.target.closest('.mobile-dropdown')) {
         setActiveDropdown(null)
+      }
+      if (!event.target.closest('.user-menu-container')) {
+        setIsUserMenuOpen(false)
       }
     }
 
@@ -57,7 +62,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     navigate('/')
-    setIsMenuOpen(false)
+    setIsUserMenuOpen(false)
   }
 
   const isActive = (path) => {
@@ -184,9 +189,9 @@ export default function Navbar() {
           {/* User Menu */}
           <div className="flex items-center space-x-4">
             {user ? (
-              <div className="relative">
+              <div className="relative user-menu-container">
                 <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none"
                 >
                   <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
@@ -196,14 +201,14 @@ export default function Navbar() {
                     {user.email?.split('@')[0]}
                   </span>
                   {isLibrarian && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                       {role}
                     </span>
                   )}
                 </button>
 
                 {/* Dropdown Menu */}
-                {isMenuOpen && (
+                {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                     <div className="px-4 py-2 border-b border-gray-200">
                       <p className="text-sm font-medium text-gray-900">{user.email}</p>
@@ -248,23 +253,23 @@ export default function Navbar() {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-2">
-            <div className="space-y-1">
+          <div className="md:hidden border-t border-gray-200 bg-white">
+            <div className="px-2 pt-2 pb-3 space-y-1 max-h-96 overflow-y-auto">
               {navItems.filter(item => item.show).map((item) => (
                 item.dropdown ? (
-                  <div key={item.name}>
+                  <div key={item.name} className="mobile-dropdown">
                     <button
                       onClick={() => setActiveDropdown(activeDropdown === item.name ? null : item.name)}
-                      className="flex items-center justify-between w-full space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                      className="flex items-center justify-between w-full px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
                     >
                       <div className="flex items-center space-x-3">
                         {<item.icon className="w-5 h-5" />}
                         <span>{item.name}</span>
                       </div>
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${activeDropdown === item.name ? 'rotate-180' : ''}`} />
                     </button>
                     {activeDropdown === item.name && (
-                      <div className="ml-6 mt-1 space-y-1">
+                      <div className="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 pl-4">
                         {item.dropdown.map((subItem) => (
                           <Link
                             key={subItem.path}
@@ -279,7 +284,7 @@ export default function Navbar() {
                                 : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                             }`}
                           >
-                            {<subItem.icon className="w-5 h-5" />}
+                            {<subItem.icon className="w-4 h-4" />}
                             <span>{subItem.name}</span>
                           </Link>
                         ))}
@@ -291,7 +296,7 @@ export default function Navbar() {
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                    className={`flex items-center space-x-3 px-3 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
                       isActive(item.path)
                         ? 'bg-indigo-100 text-indigo-700'
                         : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
@@ -304,11 +309,11 @@ export default function Navbar() {
               ))}
 
               {!user && (
-                <div className="border-t border-gray-200 pt-2 mt-2 space-y-1">
+                <div className="border-t border-gray-200 pt-4 mt-4 space-y-2">
                   <Link
                     to="/login"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    className="flex items-center space-x-3 px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
                   >
                     <LogIn className="w-5 h-5" />
                     <span>Sign In</span>
@@ -316,7 +321,7 @@ export default function Navbar() {
                   <Link
                     to="/register"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                    className="flex items-center space-x-3 px-3 py-3 rounded-lg text-base font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-200"
                   >
                     <User className="w-5 h-5" />
                     <span>Sign Up</span>
@@ -327,14 +332,6 @@ export default function Navbar() {
           </div>
         )}
       </div>
-
-      {/* Overlay for mobile menu */}
-      {isMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-25 z-40 md:hidden"
-          onClick={() => setIsMenuOpen(false)}
-        />
-      )}
     </nav>
   )
 }
