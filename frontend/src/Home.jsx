@@ -53,13 +53,13 @@ export default function Home() {
       </div>
 
       {/* PDF Upload Section */}
-      <div className="container mx-auto px-4 py-16">
+      {/* <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Upload Documents</h2>
           <p className="text-gray-600">Upload PDF files to your library collection</p>
         </div>
         <PdfUpload />
-      </div>
+      </div> */}
 
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-8">
