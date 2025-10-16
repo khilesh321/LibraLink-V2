@@ -420,11 +420,11 @@ export default function AdminTransactions() {
                       <div className="text-sm text-gray-500">
                         {books[transaction.book_id]?.author && `by ${books[transaction.book_id].author}`}
                       </div>
-                      {books[transaction.book_id]?.description && (
+                      {/* {books[transaction.book_id]?.description && (
                         <div className="text-xs text-gray-400">
                           {books[transaction.book_id].description}
                         </div>
-                      )}
+                      )} */}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center">
