@@ -223,7 +223,7 @@ export default function Books() {
                   )}
                 </div>
 
-                <div className="p-4 md:mt-5">
+                <div className={`p-4 ${book.cover_image_url && 'md:mt-5'}`}>
                   <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{book.title}</h3>
 
                   {book.author && (

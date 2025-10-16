@@ -193,23 +193,23 @@ export default function Resources() {
             )}
           </div>
         ) : (
-          <div className="grid gap-6 md:w-[70%] md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {pdfs.map((pdf) => (
-              <div key={pdf.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div key={pdf.id} className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[72.5vh] duration-300">
                 <div className="w-full bg-gray-200 overflow-hidden">
                   {pdf.cover_image_url ? (
                     <img
                       src={pdf.cover_image_url}
                       alt={pdf.name}
-                      className="w-full md:w-[90%] mx-auto object-fit"
+                      className="w-full md:absolute md:group-hover:scale-x-0 mx-auto object-fit transition duration-300"
                     />
                   ) : (
-                    <div className="w-full h-48 bg-gray-300 flex items-center justify-center">
+                    <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
                       <span className="text-gray-500 text-4xl">📄</span>
                     </div>
                   )}
                 </div>
-                <div className="p-6">
+                <div className={`p-6 ${pdf.cover_image_url && 'md:mt-5'}`}>
                   <div className="flex items-center mb-4">
                     <div className="flex-1">
                       <div className="flex items-center">
