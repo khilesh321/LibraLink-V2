@@ -24,7 +24,30 @@ export default function Books() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setBooks(data || [])
+
+      // For each book, check if it's available using the database function
+      const booksWithAvailability = await Promise.all(
+        (data || []).map(async (book) => {
+          try {
+            const { data: available, error: availError } = await supabase.rpc('is_book_available', {
+              book_uuid: book.id
+            })
+
+            return {
+              ...book,
+              available: availError ? true : available // fallback to true if error
+            }
+          } catch (err) {
+            console.error('Error checking availability for book:', book.id, err)
+            return {
+              ...book,
+              available: true // fallback to true if error
+            }
+          }
+        })
+      )
+
+      setBooks(booksWithAvailability)
     } catch (error) {
       console.error('Error fetching books:', error)
     } finally {
@@ -208,6 +231,9 @@ export default function Books() {
                       isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
                       {isAvailable ? 'Available' : 'Issued'}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {book.count || 1} {book.count === 1 ? 'copy' : 'copies'}
                     </span>
                   </div>
 

@@ -5,6 +5,9 @@ import useUserRole from './useUserRole'
 export default function AddBook() {
   const { role, loading: roleLoading } = useUserRole()
   const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [description, setDescription] = useState('')
+  const [count, setCount] = useState(1)
   const [coverImage, setCoverImage] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState(null)
@@ -78,6 +81,9 @@ export default function AddBook() {
         .insert([
           {
             title: title.trim(),
+            author: author.trim() || null,
+            description: description.trim() || null,
+            count: count,
             cover_image_url: coverImageUrl,
             created_by: user.id
           }
@@ -87,6 +93,7 @@ export default function AddBook() {
 
       alert('Book added successfully!')
       setTitle('')
+      setCount(1)
       setCoverImage(null)
       setPreviewUrl(null)
 
@@ -142,6 +149,25 @@ export default function AddBook() {
                   placeholder="Enter book title"
                   required
                 />
+              </div>
+
+              <div>
+                <label htmlFor="count" className="block text-sm font-medium text-gray-700 mb-2">
+                  Number of Copies *
+                </label>
+                <input
+                  type="number"
+                  id="count"
+                  value={count}
+                  onChange={(e) => setCount(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter number of copies"
+                  min="1"
+                  required
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  How many copies of this book are available?
+                </p>
               </div>
 
               <div>
