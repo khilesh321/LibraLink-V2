@@ -12,7 +12,7 @@ import AdminTransactions from './AdminTransactions.jsx'
 import ForgotPassword from './ForgotPassword.jsx'
 import ResetPassword from './ResetPassword.jsx'
 import Register from './Register.jsx'
-// import SignUp from './signup.jsx'
+import Footer from './Footer';
 
 export default function App() {
   return (
@@ -32,8 +32,8 @@ export default function App() {
           <Route path="/books" element={<Books />} />
           <Route path="/books/add" element={<AddBook />} />
           <Route path="/my-transactions" element={<MyTransactions />} />
-          {/* <Route path="/signup" element={<SignUp />} /> */}
         </Routes>
+        <Footer />
       </div>
     </BrowserRouter>
   )
