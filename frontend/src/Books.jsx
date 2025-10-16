@@ -209,12 +209,12 @@ export default function Books() {
 
             return (
               <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <div className="aspect-w-3 aspect-h-4 bg-gray-200">
+                <div className="aspect-w-3 aspect-h-4 group bg-gray-200">
                   {book.cover_image_url ? (
                     <img
                       src={book.cover_image_url}
                       alt={book.title}
-                      className="w-full h-64 object-cover"
+                      className="w-3/4 object-cover group-hover:scale-x-0 transition duration-300"
                     />
                   ) : (
                     <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
@@ -225,6 +225,14 @@ export default function Books() {
 
                 <div className="p-4">
                   <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{book.title}</h3>
+
+                  {book.author && (
+                    <p className="text-sm text-gray-600 mb-1">by {book.author}</p>
+                  )}
+
+                  {book.description && (
+                    <p className="text-sm text-gray-700 mb-3 line-clamp-3">{book.description}</p>
+                  )}
 
                   <div className="flex items-center justify-between mb-3">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

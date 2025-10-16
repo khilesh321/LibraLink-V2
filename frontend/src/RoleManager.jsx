@@ -35,54 +35,24 @@ export default function RoleManager() {
     try {
       console.log('Updating user role:', userId, 'to', newRole)
 
-      // First check if profile exists
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('profiles')
-        .select('id, role')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (checkError) {
-        console.error('Error checking profile:', checkError)
-        alert('Failed to check user profile')
-        return
-      }
-
-      let result
-      if (existingProfile) {
-        // Update existing profile
-        result = await supabase
-          .from('profiles')
-          .update({
-            role: newRole,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userId)
-      } else {
-        // Create new profile
-        result = await supabase
-          .from('profiles')
-          .insert({
-            id: userId,
-            role: newRole,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-      }
-
-      const { error } = result
+      // Use the database function to update user role
+      const { data, error } = await supabase.rpc('update_user_role', {
+        target_user_id: userId,
+        new_role: newRole
+      })
 
       if (error) {
         console.error('Error updating role:', error)
         alert(`Failed to update user role: ${error.message}`)
-      } else {
-        console.log('Role updated successfully')
-        // Update local state
-        setUsers(users.map(user =>
-          user.id === userId ? { ...user, role: newRole } : user
-        ))
-        alert('Role updated successfully')
+        return
       }
+
+      console.log('Role updated successfully')
+      // Update local state
+      setUsers(users.map(user =>
+        user.id === userId ? { ...user, role: newRole } : user
+      ))
+      alert('Role updated successfully')
     } catch (error) {
       console.error('Error updating role:', error)
       alert('Failed to update user role')

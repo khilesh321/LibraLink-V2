@@ -93,6 +93,8 @@ export default function AddBook() {
 
       alert('Book added successfully!')
       setTitle('')
+      setAuthor('')
+      setDescription('')
       setCount(1)
       setCoverImage(null)
       setPreviewUrl(null)
@@ -167,6 +169,40 @@ export default function AddBook() {
                 />
                 <p className="text-sm text-gray-500 mt-1">
                   How many copies of this book are available?
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-2">
+                  Author
+                </label>
+                <input
+                  type="text"
+                  id="author"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter author name (optional)"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Book author's name
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows="4"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter book description (optional)"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Brief description or summary of the book
                 </p>
               </div>
 
