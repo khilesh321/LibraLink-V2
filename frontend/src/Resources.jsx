@@ -126,6 +126,48 @@ export default function Resources() {
     }
   }
 
+  const handleEditResource = (resourceId) => {
+    window.location.href = `/resources/edit/${resourceId}`
+  }
+
+  const handleDeleteResource = async (resourceId) => {
+    if (!confirm('Are you sure you want to delete this resource? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      // First, get the resource details to delete the file from storage
+      const { data: resource, error: fetchError } = await supabase
+        .from('documents')
+        .select('filepath')
+        .eq('id', resourceId)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Delete the file from storage
+      if (resource?.filepath) {
+        await supabase.storage
+          .from('books')
+          .remove([resource.filepath])
+      }
+
+      // Delete the database record
+      const { error: deleteError } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', resourceId)
+
+      if (deleteError) throw deleteError
+
+      alert('Resource deleted successfully!')
+      fetchPdfs()
+    } catch (error) {
+      console.error('Error deleting resource:', error)
+      alert('Failed to delete resource: ' + error.message)
+    }
+  }
+
   // Filter PDFs based on search query
   const filteredPdfs = pdfs.filter((pdf) => {
     const query = searchQuery.toLowerCase()
@@ -307,6 +349,24 @@ export default function Resources() {
                       Download
                     </button>
                   </div>
+
+                  {/* Admin/Librarian Actions */}
+                  {['librarian', 'admin'].includes(role) && (
+                    <div className="flex space-x-2 mt-2 pt-2 border-t border-gray-200">
+                      <button
+                        onClick={() => handleEditResource(pdf.id)}
+                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium py-2 px-3 rounded transition duration-300"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteResource(pdf.id)}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-3 rounded transition duration-300"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
