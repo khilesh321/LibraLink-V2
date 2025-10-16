@@ -177,6 +177,34 @@ export default function Books() {
     }
   }
 
+  const handleEditBook = (bookId) => {
+    window.location.href = `/books/edit/${bookId}`
+  }
+
+  const handleDeleteBook = async (bookId) => {
+    if (!confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
+      return
+    }
+
+    setActionLoading(bookId)
+    try {
+      const { error } = await supabase
+        .from('books')
+        .delete()
+        .eq('id', bookId)
+
+      if (error) throw error
+
+      alert('Book deleted successfully!')
+      fetchBooks()
+    } catch (error) {
+      console.error('Error deleting book:', error)
+      alert('Failed to delete book: ' + error.message)
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   // Filter books based on search query
   const filteredBooks = books.filter((book) => {
     const query = searchQuery.toLowerCase()
@@ -355,6 +383,25 @@ export default function Books() {
                       </button>
                     )}
                   </div>
+
+                  {/* Admin/Librarian Actions */}
+                  {(role === 'admin' || role === 'librarian') && (
+                    <div className="flex space-x-2 mt-2 pt-2 border-t border-gray-200">
+                      <button
+                        onClick={() => handleEditBook(book.id)}
+                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium py-2 px-3 rounded transition duration-300"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBook(book.id)}
+                        disabled={actionLoading === book.id}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-3 rounded transition duration-300 disabled:opacity-50"
+                      >
+                        {actionLoading === book.id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )

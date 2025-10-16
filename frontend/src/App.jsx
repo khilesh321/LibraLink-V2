@@ -7,6 +7,7 @@ import Resources from './Resources.jsx'
 import RoleManager from './RoleManager.jsx'
 import Books from './Books.jsx'
 import AddBook from './AddBook.jsx'
+import EditBook from './EditBook.jsx'
 import MyTransactions from './MyTransactions.jsx'
 import AdminTransactions from './AdminTransactions.jsx'
 import ForgotPassword from './ForgotPassword.jsx'
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/admin/transactions" element={<AdminTransactions />} />
           <Route path="/books" element={<Books />} />
           <Route path="/books/add" element={<AddBook />} />
+          <Route path="/books/edit/:id" element={<EditBook />} />
           <Route path="/my-transactions" element={<MyTransactions />} />
         </Routes>
         </ReactLenis>
