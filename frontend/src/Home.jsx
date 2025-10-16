@@ -95,19 +95,28 @@ export default function Home() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="text-blue-600 text-2xl mb-2">📚</div>
+                <h3 className="font-semibold text-gray-900">Browse Books</h3>
+                <p className="text-sm text-gray-600">Explore our book collection</p>
+                <a href="/books" className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 inline-block">
+                  View Books →
+                </a>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="text-green-600 text-2xl mb-2">📤</div>
                 <h3 className="font-semibold text-gray-900">Browse Resources</h3>
                 <p className="text-sm text-gray-600">Access all library materials</p>
-                <a href="/resources" className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 inline-block">
+                <a href="/resources" className="text-green-600 hover:text-green-800 text-sm font-medium mt-2 inline-block">
                   View Resources →
                 </a>
               </div>
 
               {(role === 'librarian' || role === 'admin') && (
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="text-green-600 text-2xl mb-2">📤</div>
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <div className="text-yellow-600 text-2xl mb-2">📤</div>
                   <h3 className="font-semibold text-gray-900">Upload Documents</h3>
                   <p className="text-sm text-gray-600">Add new materials to the library</p>
-                  <a href="/upload" className="text-green-600 hover:text-green-800 text-sm font-medium mt-2 inline-block">
+                  <a href="/upload" className="text-yellow-600 hover:text-yellow-800 text-sm font-medium mt-2 inline-block">
                     Upload PDF →
                   </a>
                 </div>
