@@ -8,6 +8,7 @@ export default function Books() {
   const [loading, setLoading] = useState(true)
   const [userTransactions, setUserTransactions] = useState([])
   const [actionLoading, setActionLoading] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     fetchBooks()
@@ -176,6 +177,17 @@ export default function Books() {
     }
   }
 
+  // Filter books based on search query
+  const filteredBooks = books.filter((book) => {
+    const query = searchQuery.toLowerCase()
+    return (
+      book.title?.toLowerCase().includes(query) ||
+      book.author?.toLowerCase().includes(query) ||
+      book.description?.toLowerCase().includes(query) ||
+      book.genre?.toLowerCase().includes(query)
+    )
+  })
+
   if (loading || roleLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -202,8 +214,67 @@ export default function Books() {
           )}
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="max-w-md mx-auto">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search books by title, author, or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+          {searchQuery && (
+            <div className="text-center mt-2">
+              <span className="text-sm text-gray-600">
+                Found {filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''} matching "{searchQuery}"
+              </span>
+            </div>
+          )}
+        </div>
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {books.map((book) => {
+          {filteredBooks.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <div className="text-6xl mb-4">📚</div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                {searchQuery ? 'No books found' : 'No books available'}
+              </h2>
+              <p className="text-gray-600">
+                {searchQuery 
+                  ? `No books match your search for "${searchQuery}". Try different keywords.`
+                  : 'Books will appear here once they are added to the library.'
+                }
+              </p>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
+                >
+                  Clear Search
+                </button>
+              )}
+            </div>
+          ) : (
+            filteredBooks.map((book) => {
             const bookStatus = getBookStatus(book.id)
             const isAvailable = book.available
 
@@ -287,21 +358,8 @@ export default function Books() {
                 </div>
               </div>
             )
-          })}
+          }))}
         </div>
-
-        {books.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No books available</h3>
-            <p className="text-gray-600">
-              {(role === 'admin' || role === 'librarian')
-                ? 'Add some books to get started!'
-                : 'Check back later for new books.'
-              }
-            </p>
-          </div>
-        )}
       </div>
     </div>
   )
