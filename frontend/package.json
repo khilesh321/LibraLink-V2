@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@splinetool/react-spline": "^4.1.0",
     "@supabase/supabase-js": "^2.75.0",
     "@tailwindcss/vite": "^4.1.14",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.545.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.4",
