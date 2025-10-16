@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { supabase } from './supabaseClient'
+import useUserRole from './useUserRole'
 
 export default function PdfUpload() {
   const [file, setFile] = useState(null)
   const [documentName, setDocumentName] = useState('')
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState('')
+  const { role, loading } = useUserRole()
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0]
@@ -23,6 +25,11 @@ export default function PdfUpload() {
   }
 
   const handleUpload = async () => {
+    if (!['librarian', 'admin'].includes(role)) {
+      setMessage('Access denied. Only librarians and admins can upload documents.')
+      return
+    }
+
     if (!file || !documentName.trim()) {
       setMessage('Please select a PDF file and enter a document name.')
       return
@@ -78,6 +85,33 @@ export default function PdfUpload() {
     } finally {
       setUploading(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  console.log(role);
+  if (!['librarian', 'admin'].includes(role)) {
+    return (
+      <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+        <div className="text-center">
+          <div className="text-red-500 text-4xl mb-4">🚫</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Access Denied</h3>
+          <p className="text-gray-600">Only librarians and admins can upload documents.</p>
+          {role === 'student' && (
+            <p className="text-sm text-gray-500 mt-2">Your current role: Student</p>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (

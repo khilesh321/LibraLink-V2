@@ -3,6 +3,7 @@ import Login from './Auth/Login.jsx'
 import Home from './Home.jsx'
 import PdfUpload from './PdfUpload.jsx'
 import Resources from './Resources.jsx'
+import RoleManager from './RoleManager.jsx'
 // import SignUp from './signup.jsx'
 
 export default function App() {
@@ -13,7 +14,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/upload" element={<PdfUpload />} />
         <Route path="/resources" element={<Resources />} />
-        {/* <Route path="/signup" element={<SignUp />} */}
+        <Route path="/admin/roles" element={<RoleManager />} />
+        {/* <Route path="/signup" element={<SignUp />} /> */}
       </Routes>
     </BrowserRouter>
   )

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
+import useUserRole from './useUserRole'
 
 export default function Resources() {
   const [pdfs, setPdfs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { role } = useUserRole()
 
   useEffect(() => {
     fetchPdfs()
@@ -140,12 +142,14 @@ export default function Resources() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Library Resources</h1>
-            <a
-              href="/upload"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
-            >
-              Upload PDF
-            </a>
+            {['librarian', 'admin'].includes(role) && (
+              <a
+                href="/upload"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
+              >
+                Upload PDF
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -156,13 +160,20 @@ export default function Resources() {
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📚</div>
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">No PDFs uploaded yet</h2>
-            <p className="text-gray-600 mb-6">Be the first to upload a PDF to the library!</p>
-            <a
-              href="/upload"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition duration-200"
-            >
-              Upload Your First PDF
-            </a>
+            <p className="text-gray-600 mb-6">
+              {['librarian', 'admin'].includes(role)
+                ? 'Be the first to upload a PDF to the library!'
+                : 'No documents available yet.'
+              }
+            </p>
+            {['librarian', 'admin'].includes(role) && (
+              <a
+                href="/upload"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition duration-200"
+              >
+                Upload Your First PDF
+              </a>
+            )}
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
