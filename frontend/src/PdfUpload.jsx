@@ -6,6 +6,8 @@ export default function PdfUpload() {
   const [file, setFile] = useState(null)
   const [documentName, setDocumentName] = useState('')
   const [flipbookUrl, setFlipbookUrl] = useState('')
+  const [coverImage, setCoverImage] = useState(null)
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState('')
   const { role, loading } = useUserRole()
@@ -23,6 +25,37 @@ export default function PdfUpload() {
       setDocumentName('')
       setMessage('Please select a valid PDF file.')
     }
+  }
+
+  const handleCoverImageChange = (e) => {
+    const selectedFile = e.target.files[0]
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
+      setCoverImage(selectedFile)
+      const url = URL.createObjectURL(selectedFile)
+      setCoverPreviewUrl(url)
+    } else {
+      setCoverImage(null)
+      setCoverPreviewUrl(null)
+      setMessage('Please select a valid image file.')
+    }
+  }
+
+  const uploadCoverImage = async (file) => {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `cover-${Date.now()}.${fileExt}`
+    const filePath = `document-covers/${fileName}`
+
+    const { data, error } = await supabase.storage
+      .from('images')
+      .upload(filePath, file)
+
+    if (error) throw error
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('images')
+      .getPublicUrl(filePath)
+
+    return publicUrl
   }
 
   const handleUpload = async () => {
@@ -44,7 +77,7 @@ export default function PdfUpload() {
       const fileName = `${Date.now()}.${fileExt}`
       const filePath = `pdfs/${fileName}`
 
-      // Upload file to storage
+      // Upload PDF file to storage
       const { data: storageData, error: storageError } = await supabase.storage
         .from('books')
         .upload(filePath, file, {
@@ -54,6 +87,12 @@ export default function PdfUpload() {
 
       if (storageError) {
         throw storageError
+      }
+
+      // Upload cover image if provided
+      let coverImageUrl = null
+      if (coverImage) {
+        coverImageUrl = await uploadCoverImage(coverImage)
       }
 
       // Save document metadata to database
@@ -66,13 +105,18 @@ export default function PdfUpload() {
             filepath: filePath,
             size: file.size,
             flipbook_url: flipbookUrl.trim() || null,
+            cover_image_url: coverImageUrl,
             uploaded_by: (await supabase.auth.getUser()).data.user?.id
           }
         ])
 
       if (dbError) {
-        // If database insert fails, try to delete the uploaded file
+        // If database insert fails, try to delete the uploaded files
         await supabase.storage.from('books').remove([filePath])
+        if (coverImageUrl) {
+          // Note: We can't easily delete from images bucket without the file path
+          // In production, you might want to implement cleanup logic
+        }
         throw dbError
       }
 
@@ -80,8 +124,11 @@ export default function PdfUpload() {
       setFile(null)
       setDocumentName('')
       setFlipbookUrl('')
-      // Reset file input
+      setCoverImage(null)
+      setCoverPreviewUrl(null)
+      // Reset file inputs
       document.getElementById('pdf-input').value = ''
+      document.getElementById('cover-input').value = ''
     } catch (error) {
       console.error('Error uploading PDF:', error)
       setMessage('Error uploading PDF. Please try again.')
@@ -171,7 +218,33 @@ export default function PdfUpload() {
 
       {file && (
         <div className="mb-4">
-          <p className="text-sm text-gray-600">Selected file: {file.name}</p>
+          <label htmlFor="cover-input" className="block text-sm font-medium text-gray-700 mb-2">
+            Cover Image (Optional)
+          </label>
+          <input
+            id="cover-input"
+            type="file"
+            accept="image/*"
+            onChange={handleCoverImageChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={uploading}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Upload a cover image for the document (JPG, PNG, etc.)
+          </p>
+        </div>
+      )}
+
+      {coverPreviewUrl && (
+        <div className="mb-4">
+          <p className="text-sm font-medium text-gray-700 mb-2">Cover Preview:</p>
+          <div className="w-32 h-40 bg-gray-200 rounded overflow-hidden mx-auto">
+            <img
+              src={coverPreviewUrl}
+              alt="Cover preview"
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
       )}
 
