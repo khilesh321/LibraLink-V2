@@ -5,6 +5,7 @@ import useUserRole from './useUserRole'
 export default function PdfUpload() {
   const [file, setFile] = useState(null)
   const [documentName, setDocumentName] = useState('')
+  const [flipbookUrl, setFlipbookUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState('')
   const { role, loading } = useUserRole()
@@ -64,6 +65,7 @@ export default function PdfUpload() {
             filename: fileName,
             filepath: filePath,
             size: file.size,
+            flipbook_url: flipbookUrl.trim() || null,
             uploaded_by: (await supabase.auth.getUser()).data.user?.id
           }
         ])
@@ -77,6 +79,7 @@ export default function PdfUpload() {
       setMessage('PDF uploaded successfully!')
       setFile(null)
       setDocumentName('')
+      setFlipbookUrl('')
       // Reset file input
       document.getElementById('pdf-input').value = ''
     } catch (error) {
@@ -143,6 +146,26 @@ export default function PdfUpload() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={uploading}
           />
+        </div>
+      )}
+
+      {file && (
+        <div className="mb-4">
+          <label htmlFor="flipbook-url" className="block text-sm font-medium text-gray-700 mb-2">
+            FlipHTML5 Flipbook URL (Optional)
+          </label>
+          <input
+            id="flipbook-url"
+            type="url"
+            value={flipbookUrl}
+            onChange={(e) => setFlipbookUrl(e.target.value)}
+            placeholder="https://fliphtml5.com/bookcase/xxxxx"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={uploading}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Enter your FlipHTML5 flipbook URL for interactive reading experience
+          </p>
         </div>
       )}
 

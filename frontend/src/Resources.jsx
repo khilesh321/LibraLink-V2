@@ -6,6 +6,7 @@ export default function Resources() {
   const [pdfs, setPdfs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [selectedFlipbook, setSelectedFlipbook] = useState(null)
   const { role } = useUserRole()
 
   useEffect(() => {
@@ -73,6 +74,13 @@ export default function Resources() {
   }
 
   const readOnline = async (doc) => {
+    // If flipbook URL exists, show flipbook modal
+    if (doc.flipbook_url) {
+      setSelectedFlipbook(doc)
+      return
+    }
+
+    // Fallback to regular PDF viewing
     try {
       // First try to get a public URL
       const { data: publicUrlData } = supabase.storage
@@ -183,9 +191,16 @@ export default function Resources() {
                   <div className="flex items-center mb-4">
                     <div className="text-red-500 text-2xl mr-3">📄</div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 truncate" title={pdf.name}>
-                        {pdf.name}
-                      </h3>
+                      <div className="flex items-center">
+                        <h3 className="font-semibold text-gray-900 truncate mr-2" title={pdf.name}>
+                          {pdf.name}
+                        </h3>
+                        {pdf.flipbook_url && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            📖 Flipbook
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500">
                         {new Date(pdf.created_at).toLocaleDateString()}
                       </p>
@@ -198,9 +213,15 @@ export default function Resources() {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => readOnline(pdf)}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-3 rounded transition duration-200"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-3 rounded transition duration-200 flex items-center justify-center"
                     >
-                      Read Online
+                      {pdf.flipbook_url ? (
+                        <>
+                          📖 Read as Flipbook
+                        </>
+                      ) : (
+                        'Read Online'
+                      )}
                     </button>
                     <button
                       onClick={() => downloadPdf(pdf)}
@@ -215,6 +236,38 @@ export default function Resources() {
           </div>
         )}
       </div>
+
+      {/* Flipbook Modal */}
+      {selectedFlipbook && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">{selectedFlipbook.name}</h3>
+              <button
+                onClick={() => setSelectedFlipbook(null)}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="w-full h-[70vh] bg-gray-100 rounded">
+                <iframe
+                  src={selectedFlipbook.flipbook_url}
+                  className="w-full h-full rounded"
+                  title={`Flipbook: ${selectedFlipbook.name}`}
+                  allowFullScreen
+                />
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-600">
+                  Interactive flipbook powered by FlipHTML5
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
