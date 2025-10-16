@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Calendar, Clock, AlertCircle, CheckCircle, Users, Search, Filter } from 'lucide-react'
+import { ArrowLeft, BookOpen, Calendar, Clock, AlertCircle, CheckCircle, Users, Search, Filter, Download } from 'lucide-react'
+import { generateTransactionsPDF } from './pdfUtils'
 
 export default function AdminTransactions() {
   const { role, loading: roleLoading } = useUserRole()
@@ -203,6 +204,21 @@ export default function AdminTransactions() {
     })
   }
 
+  const handleExportPDF = async () => {
+    try {
+      await generateTransactionsPDF(
+        filteredTransactions,
+        books,
+        users,
+        'All Library Transactions',
+        currentUser
+      )
+    } catch (error) {
+      console.error('Error exporting PDF:', error)
+      alert('Failed to export PDF. Please try again.')
+    }
+  }
+
   // Filter transactions based on search and action filter
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch =
@@ -265,6 +281,14 @@ export default function AdminTransactions() {
                   {role}
                 </span>
               </div>
+              <button
+                onClick={handleExportPDF}
+                disabled={filteredTransactions.length === 0}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export PDF
+              </button>
               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
                 {currentUser?.email?.charAt(0).toUpperCase()}
               </div>
