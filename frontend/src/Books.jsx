@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
+import { toast } from 'react-toastify'
 
 export default function Books() {
   const { role, loading: roleLoading } = useUserRole()
@@ -108,15 +109,15 @@ export default function Books() {
       if (error) throw error
 
       if (data) {
-        alert('Book issued successfully!')
+        toast.success('Book issued successfully!')
         fetchBooks()
         fetchUserTransactions()
       } else {
-        alert('Book is not available')
+        toast.warning('Book is not available')
       }
     } catch (error) {
       console.error('Error issuing book:', error)
-      alert('Failed to issue book: ' + error.message)
+      toast.error('Failed to issue book: ' + error.message)
     } finally {
       setActionLoading(null)
     }
@@ -136,15 +137,15 @@ export default function Books() {
       if (error) throw error
 
       if (data) {
-        alert('Book returned successfully!')
+        toast.success('Book returned successfully!')
         fetchBooks()
         fetchUserTransactions()
       } else {
-        alert('Failed to return book')
+        toast.error('Failed to return book')
       }
     } catch (error) {
       console.error('Error returning book:', error)
-      alert('Failed to return book: ' + error.message)
+      toast.error('Failed to return book: ' + error.message)
     } finally {
       setActionLoading(null)
     }
@@ -164,14 +165,14 @@ export default function Books() {
       if (error) throw error
 
       if (data) {
-        alert('Book renewed successfully!')
+        toast.success('Book renewed successfully!')
         fetchUserTransactions()
       } else {
-        alert('Failed to renew book - it may not be issued to you')
+        toast.warning('Failed to renew book - it may not be issued to you')
       }
     } catch (error) {
       console.error('Error renewing book:', error)
-      alert('Failed to renew book: ' + error.message)
+      toast.error('Failed to renew book: ' + error.message)
     } finally {
       setActionLoading(null)
     }
@@ -195,11 +196,11 @@ export default function Books() {
 
       if (error) throw error
 
-      alert('Book deleted successfully!')
+      toast.success('Book deleted successfully!')
       fetchBooks()
     } catch (error) {
       console.error('Error deleting book:', error)
-      alert('Failed to delete book: ' + error.message)
+      toast.error('Failed to delete book: ' + error.message)
     } finally {
       setActionLoading(null)
     }

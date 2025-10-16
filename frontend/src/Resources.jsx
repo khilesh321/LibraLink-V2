@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
+import { toast } from 'react-toastify'
 
 export default function Resources() {
   const [pdfs, setPdfs] = useState([])
@@ -71,7 +72,7 @@ export default function Resources() {
       }
     } catch (error) {
       console.error('Error downloading PDF:', error)
-      alert('Failed to download PDF. Please try again.')
+      toast.error('Failed to download PDF. Please try again.')
     }
   }
 
@@ -107,7 +108,7 @@ export default function Resources() {
       }
     } catch (error) {
       console.error('Error reading PDF:', error)
-      alert('Failed to open PDF. The file might not exist or you may not have permission to access it.')
+      toast.error('Failed to open PDF. The file might not exist or you may not have permission to access it.')
     }
   }
 
@@ -160,11 +161,11 @@ export default function Resources() {
 
       if (deleteError) throw deleteError
 
-      alert('Resource deleted successfully!')
+      toast.success('Resource deleted successfully!')
       fetchPdfs()
     } catch (error) {
       console.error('Error deleting resource:', error)
-      alert('Failed to delete resource: ' + error.message)
+      toast.error('Failed to delete resource: ' + error.message)
     }
   }
 

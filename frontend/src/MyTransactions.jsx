@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
+import { toast } from 'react-toastify'
 import { BookOpen, Calendar, Clock, AlertCircle, CheckCircle, Download } from 'lucide-react'
 import { generateTransactionsPDF, generateTransactionsCSV } from './pdfUtils'
 
@@ -150,7 +151,7 @@ export default function MyTransactions() {
       )
     } catch (error) {
       console.error('Error exporting PDF:', error)
-      alert('Failed to export PDF. Please try again.')
+      toast.error('Failed to export PDF. Please try again.')
     }
   }
 
@@ -165,7 +166,7 @@ export default function MyTransactions() {
       )
     } catch (error) {
       console.error('Error exporting CSV:', error)
-      alert('Failed to export CSV. Please try again.')
+      toast.error('Failed to export CSV. Please try again.')
     }
   }
 

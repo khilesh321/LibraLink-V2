@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
+import { toast } from 'react-toastify'
 
 export default function AddBook() {
   const { role, loading: roleLoading } = useUserRole()
@@ -61,7 +62,7 @@ export default function AddBook() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim()) {
-      alert('Please enter a book title')
+      toast.warning('Please enter a book title')
       return
     }
 
@@ -91,7 +92,7 @@ export default function AddBook() {
 
       if (error) throw error
 
-      alert('Book added successfully!')
+      toast.success('Book added successfully!')
       setTitle('')
       setAuthor('')
       setDescription('')
@@ -105,7 +106,7 @@ export default function AddBook() {
 
     } catch (error) {
       console.error('Error adding book:', error)
-      alert('Failed to add book: ' + error.message)
+      toast.error('Failed to add book: ' + error.message)
     } finally {
       setUploading(false)
     }

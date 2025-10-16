@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
+import { toast } from 'react-toastify'
 
 export default function RoleManager() {
   const [users, setUsers] = useState([])
@@ -43,7 +44,7 @@ export default function RoleManager() {
 
       if (error) {
         console.error('Error updating role:', error)
-        alert(`Failed to update user role: ${error.message}`)
+        toast.error(`Failed to update user role: ${error.message}`)
         return
       }
 
@@ -52,10 +53,10 @@ export default function RoleManager() {
       setUsers(users.map(user =>
         user.id === userId ? { ...user, role: newRole } : user
       ))
-      alert('Role updated successfully')
+      toast.success('Role updated successfully')
     } catch (error) {
       console.error('Error updating role:', error)
-      alert('Failed to update user role')
+      toast.error('Failed to update user role')
     }
   }
 

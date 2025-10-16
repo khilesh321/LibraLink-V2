@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
+import { toast } from 'react-toastify'
 
 export default function EditBook() {
   const { role, loading: roleLoading } = useUserRole()
@@ -59,7 +60,7 @@ export default function EditBook() {
       }
     } catch (error) {
       console.error('Error fetching book:', error)
-      alert('Failed to load book data: ' + error.message)
+      toast.error('Failed to load book data: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -95,7 +96,7 @@ export default function EditBook() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim()) {
-      alert('Please enter a book title')
+      toast.warning('Please enter a book title')
       return
     }
 
@@ -120,12 +121,12 @@ export default function EditBook() {
 
       if (error) throw error
 
-      alert('Book updated successfully!')
+      toast.success('Book updated successfully!')
       window.location.href = '/books'
 
     } catch (error) {
       console.error('Error updating book:', error)
-      alert('Failed to update book: ' + error.message)
+      toast.error('Failed to update book: ' + error.message)
     } finally {
       setUploading(false)
     }
