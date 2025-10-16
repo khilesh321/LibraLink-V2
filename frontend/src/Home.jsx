@@ -171,7 +171,7 @@ export default function Home(){
                     transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   >
                     <Link
-                      to="/me/transactions"
+                      to="/my-transactions"
                       className="inline-flex items-center justify-center gap-3 rounded-xl border-2 border-gray-300 px-8 py-4 text-lg font-semibold text-gray-700 bg-white shadow-sm transform transition-all duration-200 hover:border-indigo-300 hover:shadow-md relative overflow-hidden group"
                     >
                       <motion.div
@@ -522,7 +522,7 @@ export default function Home(){
               </motion.div>
             </Link>
 
-            <Link to={user ? '/me/transactions' : '/login'} className="group rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105">
+            <Link to={user ? '/my-transactions' : '/login'} className="group rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}

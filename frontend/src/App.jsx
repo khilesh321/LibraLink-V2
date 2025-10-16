@@ -6,6 +6,8 @@ import Resources from './Resources.jsx'
 import RoleManager from './RoleManager.jsx'
 import Books from './Books.jsx'
 import AddBook from './AddBook.jsx'
+import MyTransactions from './MyTransactions.jsx'
+import AdminTransactions from './AdminTransactions.jsx'
 import ForgotPassword from './ForgotPassword.jsx'
 import ResetPassword from './ResetPassword.jsx'
 import Register from './Register.jsx'
@@ -23,8 +25,10 @@ export default function App() {
         <Route path="/upload" element={<PdfUpload />} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/admin/roles" element={<RoleManager />} />
+        <Route path="/admin/transactions" element={<AdminTransactions />} />
         <Route path="/books" element={<Books />} />
         <Route path="/books/add" element={<AddBook />} />
+        <Route path="/my-transactions" element={<MyTransactions />} />
         {/* <Route path="/signup" element={<SignUp />} /> */}
       </Routes>
     </BrowserRouter>
