@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Navbar from './components/Navbar'
 import Login from './Auth/Login.jsx'
 import Home from './Home.jsx'
 import PdfUpload from './PdfUpload.jsx'
@@ -16,21 +17,24 @@ import Register from './Register.jsx'
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/upload" element={<PdfUpload />} />
-        <Route path="/resources" element={<Resources />} />
-        <Route path="/admin/roles" element={<RoleManager />} />
-        <Route path="/admin/transactions" element={<AdminTransactions />} />
-        <Route path="/books" element={<Books />} />
-        <Route path="/books/add" element={<AddBook />} />
-        <Route path="/my-transactions" element={<MyTransactions />} />
-        {/* <Route path="/signup" element={<SignUp />} /> */}
-      </Routes>
+      <div className="min-h-screen">
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/upload" element={<PdfUpload />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/admin/roles" element={<RoleManager />} />
+          <Route path="/admin/transactions" element={<AdminTransactions />} />
+          <Route path="/books" element={<Books />} />
+          <Route path="/books/add" element={<AddBook />} />
+          <Route path="/my-transactions" element={<MyTransactions />} />
+          {/* <Route path="/signup" element={<SignUp />} /> */}
+        </Routes>
+      </div>
     </BrowserRouter>
   )
 }

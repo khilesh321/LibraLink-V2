@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Calendar, Clock, AlertCircle, CheckCircle, Users, Search, Filter, Download } from 'lucide-react'
+import { Download, Filter, Search, BookOpen, CheckCircle, Clock, AlertCircle, Calendar } from 'lucide-react'
 import { generateTransactionsPDF, generateTransactionsCSV } from './pdfUtils'
 
 export default function AdminTransactions() {
@@ -270,32 +269,15 @@ export default function AdminTransactions() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Page Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                to="/"
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Back to Home
-              </Link>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">All Transactions</h1>
-                <p className="text-gray-600">Manage and monitor all library transactions</p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">All Transactions</h1>
+              <p className="text-gray-600">Manage and monitor all library transactions</p>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Logged in as</p>
-                <p className="font-semibold text-gray-900">{currentUser?.email}</p>
-                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  {role}
-                </span>
-              </div>
               <button
                 onClick={handleExportPDF}
                 disabled={filteredTransactions.length === 0}
@@ -312,9 +294,6 @@ export default function AdminTransactions() {
                 <Download className="w-4 h-4 mr-2" />
                 Export CSV
               </button>
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                {currentUser?.email?.charAt(0).toUpperCase()}
-              </div>
             </div>
           </div>
         </div>

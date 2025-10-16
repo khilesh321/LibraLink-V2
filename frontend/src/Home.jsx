@@ -47,7 +47,7 @@ export default function Home(){
   ]
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Hero */}
       <section className="px-6 pt-16 pb-20">
         <div className="max-w-7xl mx-auto">
