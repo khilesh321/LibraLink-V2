@@ -39,6 +39,7 @@ export default function Login() {
     setError("");
 
     try {
+      alert(import.meta.env.VITE_FRONTEND_URL);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
