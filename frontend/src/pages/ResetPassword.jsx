@@ -80,7 +80,7 @@ export default function ResetPassword() {
             </p>
             <button
               onClick={() => navigate("/login")}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 cursor-pointer"
             >
               Go to Login
             </button>
@@ -149,7 +149,7 @@ export default function ResetPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? "Updating Password..." : "Update Password"}
             </button>
@@ -158,7 +158,7 @@ export default function ResetPassword() {
           <div className="mt-6 text-center">
             <button
               onClick={() => navigate("/login")}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer"
             >
               ← Back to Login
             </button>

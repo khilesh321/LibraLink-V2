@@ -69,7 +69,7 @@ export default function RatingModal({
           <h2 className="text-xl font-bold text-gray-900">Rate This Book</h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           >
             <X className="w-6 h-6" />
           </button>
@@ -94,7 +94,7 @@ export default function RatingModal({
                   onClick={() => setRating(star)}
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
-                  className="focus:outline-none"
+                  className="focus:outline-none cursor-pointer"
                 >
                   <Star
                     className={`w-8 h-8 ${
@@ -139,14 +139,14 @@ export default function RatingModal({
           <div className="flex space-x-3">
             <button
               onClick={handleClose}
-              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300"
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300 cursor-pointer"
             >
               Skip
             </button>
             <button
               onClick={handleSubmitRating}
               disabled={submitting || rating === 0}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition duration-300 disabled:cursor-not-allowed"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition duration-300 disabled:cursor-not-allowed cursor-pointer"
             >
               {submitting ? "Submitting..." : "Submit Rating"}
             </button>

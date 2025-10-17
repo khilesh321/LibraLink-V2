@@ -31,7 +31,7 @@ export default function EditBook() {
           </p>
           <button
             onClick={() => (window.location.href = "/books")}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
+            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 cursor-pointer"
           >
             Back to Books
           </button>
@@ -154,7 +154,7 @@ export default function EditBook() {
             <h1 className="text-3xl font-bold text-gray-900">Edit Book</h1>
             <button
               onClick={() => (window.location.href = "/books")}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer"
             >
               ← Back to Books
             </button>
@@ -279,7 +279,7 @@ export default function EditBook() {
               <button
                 type="submit"
                 disabled={uploading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {uploading ? "Updating Book..." : "Update Book"}
               </button>

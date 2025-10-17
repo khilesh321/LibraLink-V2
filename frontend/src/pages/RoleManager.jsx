@@ -138,7 +138,7 @@ export default function RoleManager() {
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
                   >
                     <svg
                       className="h-5 w-5 text-gray-400 hover:text-gray-600"
@@ -211,7 +211,7 @@ export default function RoleManager() {
                         {user.role !== "student" && (
                           <button
                             onClick={() => updateUserRole(user.id, "student")}
-                            className="text-green-600 hover:text-green-900"
+                            className="text-green-600 hover:text-green-900 cursor-pointer"
                           >
                             Make Student
                           </button>
@@ -219,7 +219,7 @@ export default function RoleManager() {
                         {user.role !== "librarian" && (
                           <button
                             onClick={() => updateUserRole(user.id, "librarian")}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-blue-600 hover:text-blue-900 cursor-pointer"
                           >
                             Make Librarian
                           </button>
@@ -227,7 +227,7 @@ export default function RoleManager() {
                         {user.role !== "admin" && (
                           <button
                             onClick={() => updateUserRole(user.id, "admin")}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-900 cursor-pointer"
                           >
                             Make Admin
                           </button>
@@ -253,7 +253,7 @@ export default function RoleManager() {
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                    className="mt-4 text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
                   >
                     Clear search
                   </button>

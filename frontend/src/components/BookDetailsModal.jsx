@@ -235,7 +235,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
               </h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -320,7 +320,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                             <button
                               onClick={handleReturnBook}
                               disabled={actionLoading}
-                              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
                             >
                               <CheckCircle className="w-4 h-4" />
                               {actionLoading ? "Returning..." : "Return Book"}
@@ -328,7 +328,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                             <button
                               onClick={handleRenewBook}
                               disabled={actionLoading}
-                              className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                              className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
                             >
                               <RotateCcw className="w-4 h-4" />
                               {actionLoading ? "Renewing..." : "Renew Book"}
@@ -338,7 +338,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                           <button
                             onClick={handleIssueBook}
                             disabled={actionLoading || !availability}
-                            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <BookOpen className="w-4 h-4" />
                             {actionLoading
@@ -350,7 +350,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                         )}
                         <button
                           onClick={() => setShowQRCode(!showQRCode)}
-                          className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <QrCode className="w-4 h-4" />
                           {showQRCode ? "Hide QR Code" : "Generate QR Code"}

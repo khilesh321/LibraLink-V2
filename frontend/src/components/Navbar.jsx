@@ -173,7 +173,7 @@ export default function Navbar() {
                           activeDropdown === item.name ? null : item.name
                         )
                       }
-                      className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                      className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
                     >
                       {<item.icon className="w-5 h-5" />}
                       <span>{item.name}</span>
@@ -222,7 +222,7 @@ export default function Navbar() {
               <div className="relative user-menu-container">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none cursor-pointer"
                 >
                   <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
                     {user.email?.charAt(0).toUpperCase()}
@@ -250,7 +250,7 @@ export default function Navbar() {
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
                       Sign Out
@@ -278,7 +278,7 @@ export default function Navbar() {
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"
+              className="md:hidden p-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none cursor-pointer"
             >
               {isMenuOpen ? (
                 <X className="w-6 h-6" />
@@ -304,7 +304,7 @@ export default function Navbar() {
                             activeDropdown === item.name ? null : item.name
                           )
                         }
-                        className="flex items-center justify-between w-full px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+                        className="flex items-center justify-between w-full px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 cursor-pointer"
                       >
                         <div className="flex items-center space-x-3">
                           {<item.icon className="w-5 h-5" />}

@@ -109,7 +109,7 @@ export default function Register() {
                   setPassword("");
                   setConfirmPassword("");
                 }}
-                className="block w-full text-blue-600 hover:text-blue-800 text-sm font-medium"
+                className="block w-full text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer"
               >
                 Register with different email
               </button>
@@ -171,7 +171,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5 text-gray-400" />
@@ -206,7 +206,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="w-5 h-5 text-gray-400" />
@@ -226,7 +226,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
@@ -247,7 +247,7 @@ export default function Register() {
             <button
               onClick={handleGoogleSignUp}
               disabled={loading}
-              className="mt-4 w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition duration-300 disabled:opacity-50"
+              className="mt-4 w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition duration-300 disabled:opacity-50 cursor-pointer"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path

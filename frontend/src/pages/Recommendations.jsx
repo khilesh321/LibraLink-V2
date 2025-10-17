@@ -180,7 +180,7 @@ export default function Recommendations() {
             </div>
             <button
               onClick={() => (window.location.href = "/books")}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 cursor-pointer"
             >
               Browse All Books
             </button>
@@ -208,7 +208,7 @@ export default function Recommendations() {
               </p>
               <button
                 onClick={() => (window.location.href = "/books")}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-300"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-300 cursor-pointer"
               >
                 Start Borrowing Books
               </button>
@@ -257,7 +257,7 @@ export default function Recommendations() {
 
                     <button
                       onClick={() => handleViewDetails(book.id)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 flex items-center justify-center gap-2"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Eye className="w-4 h-4" />
                       View Details
@@ -272,7 +272,7 @@ export default function Recommendations() {
             <button
               onClick={() => generateRecommendations(user?.id)}
               disabled={generating}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 disabled:cursor-not-allowed"
+              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 disabled:cursor-not-allowed cursor-pointer"
             >
               {generating ? "Generating..." : "Refresh Recommendations"}
             </button>
