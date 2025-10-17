@@ -3,8 +3,9 @@ import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
 import { generateBookRecommendations } from "../utils/geminiUtils";
-import { BookOpen, Star, Sparkles, Loader2 } from "lucide-react";
+import { BookOpen, Star, Sparkles, Loader2, Eye } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import BookDetailsModal from "../components/BookDetailsModal";
 
 export default function Recommendations() {
   const { role, loading: roleLoading } = useUserRole();
@@ -12,6 +13,8 @@ export default function Recommendations() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [user, setUser] = useState(null);
+  const [selectedBookId, setSelectedBookId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!roleLoading) {
@@ -140,42 +143,14 @@ export default function Recommendations() {
     }
   };
 
-  const handleIssueBook = async (book) => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+  const handleViewDetails = (bookId) => {
+    setSelectedBookId(bookId);
+    setIsModalOpen(true);
+  };
 
-      // Check if book is available
-      const { data: available, error: availError } = await supabase.rpc(
-        "is_book_available",
-        {
-          book_uuid: book.id,
-        }
-      );
-
-      if (availError) throw availError;
-
-      if (!available) {
-        toast.error("Book is not available for issue");
-        return;
-      }
-
-      // Issue the book
-      const { error: issueError } = await supabase.rpc("issue_book", {
-        book_uuid: book.id,
-        user_uuid: user.id,
-      });
-
-      if (issueError) throw issueError;
-
-      toast.success(`"${book.title}" issued successfully!`);
-      // Optionally refresh recommendations or redirect to books page
-    } catch (error) {
-      console.error("Error issuing book:", error);
-      toast.error("Failed to issue book: " + error.message);
-    }
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedBookId(null);
   };
 
   if (roleLoading || loading) {
@@ -281,10 +256,11 @@ export default function Recommendations() {
                     </div>
 
                     <button
-                      onClick={() => handleIssueBook(book)}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
+                      onClick={() => handleViewDetails(book.id)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 flex items-center justify-center gap-2"
                     >
-                      Issue Book
+                      <Eye className="w-4 h-4" />
+                      View Details
                     </button>
                   </div>
                 </div>
@@ -303,6 +279,13 @@ export default function Recommendations() {
           </div>
         </div>
       </div>
+
+      {/* Book Details Modal */}
+      <BookDetailsModal
+        bookId={selectedBookId}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
