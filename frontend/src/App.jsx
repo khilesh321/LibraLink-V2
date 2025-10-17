@@ -30,7 +30,9 @@ export default function App() {
   useEffect(() => {
     // Handle OAuth redirect and clean URL
     const handleAuthRedirect = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session && location.pathname === "/login") {
         // Clean the URL by removing the hash
         window.history.replaceState({}, document.title, "/");
@@ -41,7 +43,9 @@ export default function App() {
     handleAuthRedirect();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         // Clean the URL and navigate to home
         window.history.replaceState({}, document.title, "/");
