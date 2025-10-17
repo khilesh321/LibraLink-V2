@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
 import { toast } from 'react-toastify'
+import ReactMarkdown from 'react-markdown'
+import BookDetailsModal from './components/BookDetailsModal'
 
 export default function Books() {
   const { role, loading: roleLoading } = useUserRole()
@@ -10,6 +12,8 @@ export default function Books() {
   const [userTransactions, setUserTransactions] = useState([])
   const [actionLoading, setActionLoading] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedBookId, setSelectedBookId] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     fetchBooks()
@@ -206,6 +210,16 @@ export default function Books() {
     }
   }
 
+  const handleViewDetails = (bookId) => {
+    setSelectedBookId(bookId)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedBookId(null)
+  }
+
   // Filter books based on search query
   const filteredBooks = books.filter((book) => {
     const query = searchQuery.toLowerCase()
@@ -331,7 +345,9 @@ export default function Books() {
                   )}
 
                   {book.description && (
-                    <p className="text-sm text-gray-700 mb-3 line-clamp-3">{book.description}</p>
+                    <div className="text-sm text-gray-700 mb-3 line-clamp-3 prose prose-sm max-w-none">
+                      <ReactMarkdown>{book.description}</ReactMarkdown>
+                    </div>
                   )}
 
                   <div className="flex items-center justify-between mb-3">
@@ -385,6 +401,14 @@ export default function Books() {
                     )}
                   </div>
 
+                  {/* View Details Button */}
+                  <button
+                    onClick={() => handleViewDetails(book.id)}
+                    className="w-full mt-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded transition duration-300"
+                  >
+                    View Details
+                  </button>
+
                   {/* Admin/Librarian Actions */}
                   {(role === 'admin' || role === 'librarian') && (
                     <div className="flex space-x-2 mt-2 pt-2 border-t border-gray-200">
@@ -409,6 +433,13 @@ export default function Books() {
           }))}
         </div>
       </div>
+
+      {/* Book Details Modal */}
+      <BookDetailsModal
+        bookId={selectedBookId}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   )
 }

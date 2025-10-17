@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@splinetool/react-spline": "^4.1.0",
     "@supabase/supabase-js": "^2.75.0",
     "@tailwindcss/vite": "^4.1.14",
@@ -20,6 +21,7 @@
     "lucide-react": "^0.545.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-markdown": "^10.1.0",
     "react-responsive": "^10.0.1",
     "react-router-dom": "^7.9.4",
     "react-toastify": "^11.0.5",

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from './supabaseClient'
 import useUserRole from './useUserRole'
 import { toast } from 'react-toastify'
+import { generateBookDescription } from './geminiUtils'
 
 export default function AddBook() {
   const { role, loading: roleLoading } = useUserRole()
@@ -12,6 +13,7 @@ export default function AddBook() {
   const [coverImage, setCoverImage] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState(null)
+  const [generatingDescription, setGeneratingDescription] = useState(false)
 
   // Check if user has permission
   if (!roleLoading && (!role || (role !== 'admin' && role !== 'librarian'))) {
@@ -57,6 +59,29 @@ export default function AddBook() {
       .getPublicUrl(filePath)
 
     return publicUrl
+  }
+
+  const handleGenerateDescription = async () => {
+    if (!title.trim()) {
+      toast.warning('Please enter a book title first')
+      return
+    }
+
+    if (!author.trim()) {
+      toast.warning('Please enter an author name first')
+      return
+    }
+
+    setGeneratingDescription(true)
+    try {
+      const generatedDescription = await generateBookDescription(title.trim(), author.trim())
+      setDescription(generatedDescription)
+      toast.success('Description generated successfully!')
+    } catch (error) {
+      toast.error(error.message)
+    } finally {
+      setGeneratingDescription(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -191,9 +216,19 @@ export default function AddBook() {
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleGenerateDescription}
+                    disabled={generatingDescription || !title.trim() || !author.trim()}
+                    className="text-sm bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-1 rounded-md transition duration-300 disabled:cursor-not-allowed"
+                  >
+                    {generatingDescription ? 'Generating...' : 'Generate with AI'}
+                  </button>
+                </div>
                 <textarea
                   id="description"
                   value={description}
@@ -203,7 +238,7 @@ export default function AddBook() {
                   placeholder="Enter book description (optional)"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Brief description or summary of the book
+                  Brief description or summary of the book. Use AI to generate one based on title and author.
                 </p>
               </div>
 

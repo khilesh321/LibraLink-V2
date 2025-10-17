@@ -14,6 +14,7 @@ import AdminTransactions from './AdminTransactions.jsx'
 import ForgotPassword from './ForgotPassword.jsx'
 import ResetPassword from './ResetPassword.jsx'
 import Register from './Register.jsx'
+import Recommendations from './Recommendations.jsx'
 import Footer from './Footer';
 import { ReactLenis } from 'lenis/react'
 import { ToastContainer } from 'react-toastify'
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/books/add" element={<AddBook />} />
           <Route path="/books/edit/:id" element={<EditBook />} />
           <Route path="/my-transactions" element={<MyTransactions />} />
+          <Route path="/recommendations" element={<Recommendations />} />
         </Routes>
         </ReactLenis>
         <Footer />

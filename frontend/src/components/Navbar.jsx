@@ -17,7 +17,8 @@ import {
   BarChart3,
   Settings,
   Search,
-  Clipboard
+  Clipboard,
+  Sparkles
 } from 'lucide-react'
 
 export default function Navbar() {
@@ -84,6 +85,7 @@ export default function Navbar() {
       icon: BookOpen,
       dropdown: [
         { name: 'Browse Books', path: '/books', icon: BookOpen },
+        { name: 'AI Recommendations', path: '/recommendations', icon: Sparkles },
         ...(isLibrarian ? [
           { name: 'Add Book', path: '/books/add', icon: Upload }
         ] : [])

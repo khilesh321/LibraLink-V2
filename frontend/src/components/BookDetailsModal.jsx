@@ -1,0 +1,175 @@
+import { useState, useEffect } from 'react'
+import { supabase } from '../supabaseClient'
+import { X, BookOpen, User, Calendar, Hash, Star } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+
+export default function BookDetailsModal({ bookId, isOpen, onClose }) {
+  const [book, setBook] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [availability, setAvailability] = useState(null)
+
+  useEffect(() => {
+    if (isOpen && bookId) {
+      fetchBookDetails()
+    }
+  }, [isOpen, bookId])
+
+  const fetchBookDetails = async () => {
+    setLoading(true)
+    try {
+      // Fetch book details
+      const { data: bookData, error: bookError } = await supabase
+        .from('books')
+        .select('*')
+        .eq('id', bookId)
+        .single()
+
+      if (bookError) throw bookError
+
+      setBook(bookData)
+
+      // Check availability
+      const { data: available, error: availError } = await supabase.rpc('is_book_available', {
+        book_uuid: bookId
+      })
+
+      setAvailability(availError ? true : available)
+    } catch (error) {
+      console.error('Error fetching book details:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div data-lenis-prevent className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : book ? (
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <BookOpen className="w-6 h-6" />
+                Book Details
+              </h2>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Book Cover */}
+                <div className="lg:col-span-1">
+                  <div className="aspect-w-3 aspect-h-4 bg-gray-200 rounded-lg overflow-hidden">
+                    {book.cover_image_url ? (
+                      <img
+                        src={book.cover_image_url}
+                        alt={book.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                        <BookOpen className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Availability Status */}
+                  <div className="mt-4 p-3 rounded-lg border">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${availability ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <span className={`font-medium ${availability ? 'text-green-700' : 'text-red-700'}`}>
+                        {availability ? 'Available' : 'Not Available'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {book.count} {book.count === 1 ? 'copy' : 'copies'} available
+                    </p>
+                  </div>
+                </div>
+
+                {/* Book Information */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Basic Info */}
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{book.title}</h3>
+                    <div className="flex items-center gap-2 text-gray-600 mb-4">
+                      <User className="w-4 h-4" />
+                      <span>by {book.author || 'Unknown Author'}</span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  {book.description && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Description</h4>
+                      <div className="prose prose-sm max-w-none text-gray-700">
+                        <ReactMarkdown>{book.description}</ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Metadata */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Hash className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600">Book ID:</span>
+                        <span className="text-sm font-mono text-gray-900">{book.id.slice(0, 8)}...</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600">Added:</span>
+                        <span className="text-sm text-gray-900">{formatDate(book.created_at)}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600">Copies:</span>
+                        <span className="text-sm text-gray-900">{book.count}</span>
+                      </div>
+
+                      {book.updated_at && book.updated_at !== book.created_at && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm text-gray-600">Updated:</span>
+                          <span className="text-sm text-gray-900">{formatDate(book.updated_at)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-gray-600">Book not found</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
