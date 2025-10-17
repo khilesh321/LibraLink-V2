@@ -15,19 +15,7 @@ import {
   generateTransactionsPDF,
   generateTransactionsCSV,
 } from "../utils/pdfUtils";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+import TransactionCharts from "../components/TransactionCharts";
 
 export default function MyTransactions() {
   const { role, loading: roleLoading } = useUserRole();
@@ -198,50 +186,6 @@ export default function MyTransactions() {
     }
   };
 
-  // Calculate chart data
-  const actionChartData = [
-    {
-      name: "Issues",
-      value: transactions.filter((t) => t.action === "issue").length,
-      color: "#3B82F6"
-    },
-    {
-      name: "Returns",
-      value: transactions.filter((t) => t.action === "return").length,
-      color: "#10B981"
-    },
-    {
-      name: "Renewals",
-      value: transactions.filter((t) => t.action === "renew").length,
-      color: "#F59E0B"
-    },
-  ].filter(item => item.value > 0); // Only show actions that have transactions
-
-  // Calculate monthly activity data
-  const monthlyData = transactions.reduce((acc, transaction) => {
-    const date = new Date(transaction.transaction_date);
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-
-    if (!acc[monthKey]) {
-      acc[monthKey] = {
-        month: monthKey,
-        issues: 0,
-        returns: 0,
-        renewals: 0,
-        total: 0
-      };
-    }
-
-    acc[monthKey][transaction.action + 's']++;
-    acc[monthKey].total++;
-
-    return acc;
-  }, {});
-
-  const monthlyChartData = Object.values(monthlyData)
-    .sort((a, b) => a.month.localeCompare(b.month))
-    .slice(-6); // Show last 6 months
-
   // Calculate personal statistics
   const overdueBooks = transactions.filter((transaction) => {
     if (transaction.action !== "issue" || !transaction.due_date) return false;
@@ -280,6 +224,79 @@ export default function MyTransactions() {
   const totalFines = transactions.reduce((total, transaction) => {
     return total + calculateLateFees(transaction);
   }, 0);
+
+  // Prepare data for TransactionCharts component
+  const personalStats = [
+    { value: totalBooksBorrowed, label: "Total Books Borrowed", bgColor: "bg-white" },
+    { value: currentlyBorrowed, label: "Currently Borrowed", bgColor: "bg-blue-50" },
+    { value: overdueBooks, label: "Overdue Books", bgColor: "bg-red-50" },
+    { value: totalFines, label: "Total Fines", bgColor: "bg-yellow-50", prefix: "₹" },
+  ];
+
+  const personalCharts = [
+    {
+      type: 'pie',
+      title: 'Transaction Actions',
+      data: [
+        {
+          name: "Issues",
+          value: transactions.filter((t) => t.action === "issue").length,
+          color: "#3B82F6"
+        },
+        {
+          name: "Returns",
+          value: transactions.filter((t) => t.action === "return").length,
+          color: "#10B981"
+        },
+        {
+          name: "Renewals",
+          value: transactions.filter((t) => t.action === "renew").length,
+          color: "#F59E0B"
+        },
+      ].filter(item => item.value > 0),
+    },
+    {
+      type: 'bar',
+      title: 'Monthly Activity (Last 6 Months)',
+      data: Object.values(transactions.reduce((acc, transaction) => {
+        const date = new Date(transaction.transaction_date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+        if (!acc[monthKey]) {
+          acc[monthKey] = {
+            month: monthKey,
+            issues: 0,
+            returns: 0,
+            renewals: 0,
+            total: 0
+          };
+        }
+
+        acc[monthKey][transaction.action + 's']++;
+        acc[monthKey].total++;
+
+        return acc;
+      }, {}))
+        .sort((a, b) => a.month.localeCompare(b.month))
+        .slice(-6),
+      xDataKey: 'month',
+      xTickFormatter: (value) => {
+        const [year, month] = value.split('-');
+        return `${month}/${year.slice(2)}`;
+      },
+      tooltipLabelFormatter: (value) => {
+        const [year, month] = value.split('-');
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${monthNames[parseInt(month) - 1]} ${year}`;
+      },
+      bars: [
+        { dataKey: 'issues', stackId: 'a', fill: '#3B82F6', name: 'Issues' },
+        { dataKey: 'returns', stackId: 'a', fill: '#10B981', name: 'Returns' },
+        { dataKey: 'renewals', stackId: 'a', fill: '#F59E0B', name: 'Renewals' },
+      ],
+    },
+  ];
 
   if (loading || roleLoading) {
     return (
@@ -327,98 +344,10 @@ export default function MyTransactions() {
       </div>
 
       {/* Personal Statistics & Charts */}
-      {transactions.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          {/* Personal Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">
-                {totalBooksBorrowed}
-              </div>
-              <div className="text-sm text-gray-600">Total Books Borrowed</div>
-            </div>
-            <div className="bg-blue-50 rounded-lg shadow p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {currentlyBorrowed}
-              </div>
-              <div className="text-sm text-gray-600">Currently Borrowed</div>
-            </div>
-            <div className="bg-red-50 rounded-lg shadow p-4 text-center">
-              <div className="text-2xl font-bold text-red-600">
-                {overdueBooks}
-              </div>
-              <div className="text-sm text-gray-600">Overdue Books</div>
-            </div>
-            <div className="bg-yellow-50 rounded-lg shadow p-4 text-center">
-              <div className="text-2xl font-bold text-yellow-600">
-                ₹{totalFines}
-              </div>
-              <div className="text-sm text-gray-600">Total Fines</div>
-            </div>
-          </div>
-
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Transaction Actions Pie Chart */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Transaction Actions
-              </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={actionChartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {actionChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Monthly Activity Bar Chart */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Monthly Activity (Last 6 Months)
-              </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="month"
-                    tickFormatter={(value) => {
-                      const [year, month] = value.split('-');
-                      return `${month}/${year.slice(2)}`;
-                    }}
-                  />
-                  <YAxis />
-                  <Tooltip
-                    labelFormatter={(value) => {
-                      const [year, month] = value.split('-');
-                      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                      return `${monthNames[parseInt(month) - 1]} ${year}`;
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="issues" stackId="a" fill="#3B82F6" name="Issues" />
-                  <Bar dataKey="returns" stackId="a" fill="#10B981" name="Returns" />
-                  <Bar dataKey="renewals" stackId="a" fill="#F59E0B" name="Renewals" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      )}
+      <TransactionCharts
+        stats={personalStats}
+        charts={personalCharts}
+      />
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">

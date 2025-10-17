@@ -16,19 +16,7 @@ import {
   generateTransactionsPDF,
   generateTransactionsCSV,
 } from "../utils/pdfUtils";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+import TransactionCharts from "../components/TransactionCharts";
 
 export default function AdminTransactions() {
   const { role, loading: roleLoading } = useUserRole();
@@ -399,6 +387,43 @@ export default function AdminTransactions() {
     { name: "Total Fines (₹)", value: totalFines, color: "#F59E0B" },
   ];
 
+  // Prepare data for TransactionCharts component
+  const adminStats = [
+    { value: stats.total, label: "Total Transactions", bgColor: "bg-white" },
+    { value: stats.uniqueUsers, label: "Active Users", bgColor: "bg-purple-50" },
+    { value: stats.uniqueBooks, label: "Books in Circulation", bgColor: "bg-indigo-50" },
+  ];
+
+  const adminCharts = [
+    {
+      type: 'pie',
+      title: 'Transaction Actions Distribution',
+      data: actionChartData,
+    },
+    {
+      type: 'bar',
+      title: 'Current Month Management Metrics',
+      data: managementChartData,
+      bars: [{ dataKey: 'value', fill: '#EF4444' }],
+      tooltipFormatter: (value, name) => [
+        name === "Total Fines (₹)" ? `₹${value}` : value,
+        name
+      ],
+      footer: (
+        <div className="mt-4 grid grid-cols-2 gap-4 text-center">
+          <div className="bg-red-50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-red-600">{overdueBooks}</div>
+            <div className="text-sm text-gray-600">Overdue Books</div>
+          </div>
+          <div className="bg-yellow-50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-yellow-600">₹{totalFines}</div>
+            <div className="text-sm text-gray-600">Total Fines</div>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   if (loading || roleLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -446,93 +471,13 @@ export default function AdminTransactions() {
         </div>
       </div>
 
-      {/* Charts Section */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <div className="text-2xl font-bold text-gray-900">
-              {stats.total}
-            </div>
-            <div className="text-sm text-gray-600">Total Transactions</div>
-          </div>
-          <div className="bg-purple-50 rounded-lg shadow p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {stats.uniqueUsers}
-            </div>
-            <div className="text-sm text-gray-600">Active Users</div>
-          </div>
-          <div className="bg-indigo-50 rounded-lg shadow p-4 text-center">
-            <div className="text-2xl font-bold text-indigo-600">
-              {stats.uniqueBooks}
-            </div>
-            <div className="text-sm text-gray-600">Books in Circulation</div>
-          </div>
-        </div>
+      <TransactionCharts
+        stats={adminStats}
+        charts={adminCharts}
+      />
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Transaction Actions Pie Chart */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Transaction Actions Distribution
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={actionChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {actionChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Management Metrics Chart */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Current Month Management Metrics
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={managementChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value, name) => [
-                    name === "Total Fines (₹)" ? `₹${value}` : value,
-                    name
-                  ]}
-                />
-                <Legend />
-                <Bar dataKey="value" fill="#EF4444" />
-              </BarChart>
-            </ResponsiveContainer>
-            <div className="mt-4 grid grid-cols-2 gap-4 text-center">
-              <div className="bg-red-50 rounded-lg p-3">
-                <div className="text-2xl font-bold text-red-600">{overdueBooks}</div>
-                <div className="text-sm text-gray-600">Overdue Books</div>
-              </div>
-              <div className="bg-yellow-50 rounded-lg p-3">
-                <div className="text-2xl font-bold text-yellow-600">₹{totalFines}</div>
-                <div className="text-sm text-gray-600">Total Fines</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      {/* Filters */}
+        <div className="bg-white w-[95%] md:w-[80%] mx-auto rounded-lg shadow-md p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -563,7 +508,7 @@ export default function AdminTransactions() {
         </div>
 
         {/* Transactions Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white w-[95%] md:w-[80%] mx-auto rounded-lg shadow-md overflow-hidden">
           <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
               Transaction History ({filteredTransactions.length} of{" "}
@@ -687,7 +632,6 @@ export default function AdminTransactions() {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }
