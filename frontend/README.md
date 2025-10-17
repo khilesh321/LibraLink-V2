@@ -8,6 +8,7 @@ A modern library management system built with React, Vite, Supabase, and integra
 - **AI-Powered Features**:
   - Generate book descriptions using Google Gemini AI
   - Personalized book recommendations based on reading history
+  - AI Chatbot for instant help and library assistance
 - **User Management**: Role-based access control (Admin, Librarian, User)
 - **PDF Resources**: Upload and manage PDF documents
 - **Transaction Management**: Issue, return, and renew books with QR codes
@@ -66,6 +67,16 @@ This will create:
 - The system analyzes your last 5 borrowed books
 - AI generates personalized recommendations from the top books in the library
 - Click "Issue Book" to borrow recommended books
+
+#### AI Chatbot
+
+- Click the floating chat icon in the bottom-right corner of any page
+- Ask questions about books, library policies, or get help with navigation
+- The AI assistant is powered by Google Gemini and can help with:
+  - Finding books by genre, author, or topic
+  - Explaining library rules and procedures
+  - Providing reading recommendations
+  - Answering general questions about the library system
 
 ### Rating System
 
