@@ -108,7 +108,9 @@ export default function Navbar() {
       icon: FileText,
       dropdown: [
         { name: "Browse Resources", path: "/resources", icon: FileText },
-        { name: "Upload PDF", path: "/upload", icon: Upload },
+        ...(isLibrarian
+          ? [{ name: "Upload PDF", path: "/upload", icon: Upload }]
+          : []),
       ],
       show: user,
     },
@@ -134,13 +136,13 @@ export default function Navbar() {
       icon: Settings,
       dropdown: [
         ...(role === "admin"
-          ? [
-              { name: "User Roles", path: "/admin/roles", icon: Users },
-              { name: "Analytics Dashboard", path: "/admin/analytics", icon: BarChart3 },
-            ]
+          ? [{ name: "User Roles", path: "/admin/roles", icon: Users }]
+          : []),
+        ...(isLibrarian
+          ? [{ name: "Analytics Dashboard", path: "/admin/analytics", icon: BarChart3 }]
           : []),
       ],
-      show: user && role === "admin",
+      show: user && isLibrarian,
     },
   ];
 
