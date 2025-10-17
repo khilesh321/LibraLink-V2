@@ -379,7 +379,7 @@ export default function Resources() {
                     <img
                       src={pdf.cover_image_url}
                       alt={pdf.name}
-                      className="w-full md:absolute z-10 md:group-hover:scale-x-0 mx-auto object-fit transition duration-300"
+                      className="w-full h-full md:absolute z-10 md:group-hover:scale-x-0 mx-auto object-fit transition duration-300"
                     />
                   ) : (
                     <div className="w-full h-64 bg-gray-300 flex items-center justify-center">

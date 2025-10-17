@@ -104,6 +104,15 @@ export default function Navbar() {
       show: user,
     },
     {
+      name: "Resources",
+      icon: FileText,
+      dropdown: [
+        { name: "Browse Resources", path: "/resources", icon: FileText },
+        { name: "Upload PDF", path: "/upload", icon: Upload },
+      ],
+      show: user,
+    },
+    {
       name: "Transactions",
       icon: BarChart3,
       dropdown: [
@@ -117,15 +126,6 @@ export default function Navbar() {
               },
             ]
           : []),
-      ],
-      show: user,
-    },
-    {
-      name: "Resources",
-      icon: FileText,
-      dropdown: [
-        { name: "Browse Resources", path: "/resources", icon: FileText },
-        { name: "Upload PDF", path: "/upload", icon: Upload },
       ],
       show: user,
     },
