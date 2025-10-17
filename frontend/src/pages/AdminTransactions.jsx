@@ -17,6 +17,7 @@ import {
   generateTransactionsCSV,
 } from "../utils/pdfUtils";
 import TransactionCharts from "../components/TransactionCharts";
+import { motion } from "framer-motion";
 
 export default function AdminTransactions() {
   const { role, loading: roleLoading } = useUserRole();
@@ -449,21 +450,21 @@ export default function AdminTransactions() {
                 Manage and monitor all library transactions
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={handleExportPDF}
                 disabled={filteredTransactions.length === 0}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+                className="group flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-md w-full sm:w-auto font-medium"
               >
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="w-4 h-4 mr-2 group-hover:animate-bounce" />
                 Export PDF
               </button>
               <button
                 onClick={handleExportCSV}
                 disabled={filteredTransactions.length === 0}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+                className="group flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-md w-full sm:w-auto font-medium"
               >
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="w-4 h-4 mr-2 group-hover:animate-bounce" />
                 Export CSV
               </button>
             </div>
@@ -471,13 +472,25 @@ export default function AdminTransactions() {
         </div>
       </div>
 
-      <TransactionCharts
-        stats={adminStats}
-        charts={adminCharts}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <TransactionCharts
+          stats={adminStats}
+          charts={adminCharts}
+        />
+      </motion.div>
 
       {/* Filters */}
-        <div className="bg-white w-[95%] md:w-[80%] mx-auto rounded-lg shadow-md p-6 mb-6">
+      <motion.div
+        className="bg-white w-[95%] md:w-[80%] mx-auto rounded-lg shadow-md p-6 mb-6"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        viewport={{ once: true }}
+      >
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -505,10 +518,16 @@ export default function AdminTransactions() {
               </select>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Transactions Table */}
-        <div className="bg-white w-[95%] md:w-[80%] mx-auto rounded-lg shadow-md overflow-hidden">
+        <motion.div
+          className="bg-white w-[95%] md:w-[80%] mx-auto rounded-lg shadow-md overflow-hidden"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          viewport={{ once: true }}
+        >
           <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
               Transaction History ({filteredTransactions.length} of{" "}
@@ -542,7 +561,14 @@ export default function AdminTransactions() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredTransactions.map((transaction, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
+                  <motion.tr
+                    key={index}
+                    className="hover:bg-gray-50"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    whileHover={{ scale: 1.01, backgroundColor: "#f9fafb" }}
+                  >
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {getActionIcon(transaction.action)}
@@ -612,7 +638,7 @@ export default function AdminTransactions() {
                         );
                       })()}
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
@@ -631,7 +657,7 @@ export default function AdminTransactions() {
               </p>
             </div>
           )}
-        </div>
+        </motion.div>
     </div>
   );
 }

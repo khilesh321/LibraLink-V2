@@ -16,6 +16,7 @@ import {
   generateTransactionsCSV,
 } from "../utils/pdfUtils";
 import TransactionCharts from "../components/TransactionCharts";
+import { motion } from "framer-motion";
 
 export default function MyTransactions() {
   const { role, loading: roleLoading } = useUserRole();
@@ -321,21 +322,21 @@ export default function MyTransactions() {
               </h1>
               <p className="text-gray-600">View your book borrowing history</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={handleExportPDF}
                 disabled={transactions.length === 0}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+                className="group flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-md w-full sm:w-auto font-medium"
               >
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="w-4 h-4 mr-2 group-hover:animate-bounce" />
                 Export PDF
               </button>
               <button
                 onClick={handleExportCSV}
                 disabled={transactions.length === 0}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+                className="group flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-md w-full sm:w-auto font-medium"
               >
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="w-4 h-4 mr-2 group-hover:animate-bounce" />
                 Export CSV
               </button>
             </div>
@@ -344,31 +345,70 @@ export default function MyTransactions() {
       </div>
 
       {/* Personal Statistics & Charts */}
-      <TransactionCharts
-        stats={personalStats}
-        charts={personalCharts}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <TransactionCharts
+          stats={personalStats}
+          charts={personalCharts}
+        />
+      </motion.div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <motion.div
+        className="max-w-7xl mx-auto px-4 py-8"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        viewport={{ once: true }}
+      >
         {transactions.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-6 sm:p-12 text-center">
-            <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <motion.div
+            className="bg-white rounded-lg shadow-md p-6 sm:p-12 text-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            </motion.div>
+            <motion.h3
+              className="text-xl font-semibold text-gray-900 mb-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
               No Transactions Yet
-            </h3>
-            <p className="text-gray-600 mb-6">
+            </motion.h3>
+            <motion.p
+              className="text-gray-600 mb-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+            >
               You haven't borrowed any books yet. Start exploring our
               collection!
-            </p>
-            <Link
-              to="/books"
-              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
             >
-              <BookOpen className="w-5 h-5 mr-2" />
-              Browse Books
-            </Link>
-          </div>
+              <Link
+                to="/books"
+                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <BookOpen className="w-5 h-5 mr-2" />
+                Browse Books
+              </Link>
+            </motion.div>
+          </motion.div>
         ) : (
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
@@ -400,7 +440,14 @@ export default function MyTransactions() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {transactions.map((transaction, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
+                    <motion.tr
+                      key={index}
+                      className="hover:bg-gray-50"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      whileHover={{ scale: 1.01, backgroundColor: "#f9fafb" }}
+                    >
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {getActionIcon(transaction.action)}
@@ -460,14 +507,14 @@ export default function MyTransactions() {
                           );
                         })()}
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
