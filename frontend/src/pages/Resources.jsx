@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
+import ResourcesDetailsModal from "../components/ResourcesDetailsModal";
 
 export default function Resources() {
   const [pdfs, setPdfs] = useState([]);
@@ -12,6 +13,8 @@ export default function Resources() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sizeFilter, setSizeFilter] = useState("all");
   const [downloadingId, setDownloadingId] = useState(null);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const { role } = useUserRole();
 
   useEffect(() => {
@@ -139,6 +142,11 @@ export default function Resources() {
 
   const handleEditResource = (resourceId) => {
     window.location.href = `/resources/edit/${resourceId}`;
+  };
+
+  const handleViewDetails = (document) => {
+    setSelectedDocument(document);
+    setShowDetailsModal(true);
   };
 
   const handleDeleteResource = async (resourceId) => {
@@ -414,6 +422,15 @@ export default function Resources() {
 
                   <div className="flex space-x-2">
                     <button
+                      onClick={() => handleViewDetails(pdf)}
+                      className="flex-1 bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Details</span>
+                    </button>
+                    <button
                       onClick={() => openReadPopup(pdf)}
                       className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer"
                     >
@@ -540,6 +557,18 @@ export default function Resources() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Resources Details Modal */}
+      {showDetailsModal && selectedDocument && (
+        <ResourcesDetailsModal
+          documentId={selectedDocument.id}
+          isOpen={showDetailsModal}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setSelectedDocument(null);
+          }}
+        />
       )}
     </div>
   );

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { FileText, Wand2 } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function PdfUpload() {
   const [file, setFile] = useState(null);
@@ -10,6 +13,8 @@ export default function PdfUpload() {
   const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
+  const [description, setDescription] = useState("");
+  const [generatingDescription, setGeneratingDescription] = useState(false);
   const { role, loading } = useUserRole();
 
   const handleFileChange = (e) => {
@@ -56,6 +61,35 @@ export default function PdfUpload() {
     } = supabase.storage.from("images").getPublicUrl(filePath);
 
     return publicUrl;
+  };
+
+  const generateDescription = async () => {
+    if (!file) {
+      toast.error("Please select a PDF file first");
+      return;
+    }
+
+    setGeneratingDescription(true);
+    try {
+      // Initialize Gemini AI
+      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      // For now, we'll generate a description based on the filename and document name
+      // In a real implementation, you might want to extract text from the PDF
+      const prompt = `Generate a brief, engaging description for a document titled "${documentName}". This appears to be a PDF document. Create a description that would help users understand what this document contains and why they might be interested in reading it. Keep it under 200 words.`;
+
+      const result = await model.generateContent(prompt);
+      const generatedDescription = result.response.text();
+
+      setDescription(generatedDescription);
+      toast.success("Description generated successfully!");
+    } catch (error) {
+      console.error("Error generating description:", error);
+      toast.error("Failed to generate description. Please try again.");
+    } finally {
+      setGeneratingDescription(false);
+    }
   };
 
   const handleUpload = async () => {
@@ -108,6 +142,7 @@ export default function PdfUpload() {
             size: file.size,
             flipbook_url: flipbookUrl.trim() || null,
             cover_image_url: coverImageUrl,
+            description: description.trim() || null,
             uploaded_by: (await supabase.auth.getUser()).data.user?.id,
           },
         ]);
@@ -126,6 +161,7 @@ export default function PdfUpload() {
       setFile(null);
       setDocumentName("");
       setFlipbookUrl("");
+      setDescription("");
       setCoverImage(null);
       setCoverPreviewUrl(null);
       // Reset file inputs
@@ -226,6 +262,39 @@ export default function PdfUpload() {
           />
           <p className="text-xs text-gray-500 mt-1">
             Enter your FlipHTML5 flipbook URL for interactive reading experience
+          </p>
+        </div>
+      )}
+
+      {file && (
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Description
+            </label>
+            <button
+              onClick={generateDescription}
+              disabled={generatingDescription}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
+            >
+              <Wand2 className="w-4 h-4" />
+              {generatingDescription ? "Generating..." : "Auto Generate"}
+            </button>
+          </div>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter a description for the document..."
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+            disabled={uploading}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Provide a description of the document content
           </p>
         </div>
       )}
