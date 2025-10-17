@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { supabase } from "./supabaseClient";
-import useUserRole from "./useUserRole";
+import { supabase } from "../supabase/supabaseClient";
+import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
 import ReactMarkdown from "react-markdown";
-import BookDetailsModal from "./components/BookDetailsModal";
-import RatingModal from "./components/RatingModal";
+import BookDetailsModal from "../components/BookDetailsModal";
+import RatingModal from "../components/RatingModal";
 
 export default function Books() {
   const { role, loading: roleLoading } = useUserRole();

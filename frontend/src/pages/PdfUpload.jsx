@@ -1,103 +1,105 @@
-import { useState } from 'react'
-import { supabase } from './supabaseClient'
-import useUserRole from './useUserRole'
+import { useState } from "react";
+import { supabase } from "../supabase/supabaseClient";
+import useUserRole from "../supabase/useUserRole";
 
 export default function PdfUpload() {
-  const [file, setFile] = useState(null)
-  const [documentName, setDocumentName] = useState('')
-  const [flipbookUrl, setFlipbookUrl] = useState('')
-  const [coverImage, setCoverImage] = useState(null)
-  const [coverPreviewUrl, setCoverPreviewUrl] = useState(null)
-  const [uploading, setUploading] = useState(false)
-  const [message, setMessage] = useState('')
-  const { role, loading } = useUserRole()
+  const [file, setFile] = useState(null);
+  const [documentName, setDocumentName] = useState("");
+  const [flipbookUrl, setFlipbookUrl] = useState("");
+  const [coverImage, setCoverImage] = useState(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState("");
+  const { role, loading } = useUserRole();
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0]
-    if (selectedFile && selectedFile.type === 'application/pdf') {
-      setFile(selectedFile)
+    const selectedFile = e.target.files[0];
+    if (selectedFile && selectedFile.type === "application/pdf") {
+      setFile(selectedFile);
       // Set initial document name from filename (without extension)
-      const nameWithoutExt = selectedFile.name.replace(/\.pdf$/i, '')
-      setDocumentName(nameWithoutExt)
-      setMessage('')
+      const nameWithoutExt = selectedFile.name.replace(/\.pdf$/i, "");
+      setDocumentName(nameWithoutExt);
+      setMessage("");
     } else {
-      setFile(null)
-      setDocumentName('')
-      setMessage('Please select a valid PDF file.')
+      setFile(null);
+      setDocumentName("");
+      setMessage("Please select a valid PDF file.");
     }
-  }
+  };
 
   const handleCoverImageChange = (e) => {
-    const selectedFile = e.target.files[0]
-    if (selectedFile && selectedFile.type.startsWith('image/')) {
-      setCoverImage(selectedFile)
-      const url = URL.createObjectURL(selectedFile)
-      setCoverPreviewUrl(url)
+    const selectedFile = e.target.files[0];
+    if (selectedFile && selectedFile.type.startsWith("image/")) {
+      setCoverImage(selectedFile);
+      const url = URL.createObjectURL(selectedFile);
+      setCoverPreviewUrl(url);
     } else {
-      setCoverImage(null)
-      setCoverPreviewUrl(null)
-      setMessage('Please select a valid image file.')
+      setCoverImage(null);
+      setCoverPreviewUrl(null);
+      setMessage("Please select a valid image file.");
     }
-  }
+  };
 
   const uploadCoverImage = async (file) => {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `cover-${Date.now()}.${fileExt}`
-    const filePath = `document-covers/${fileName}`
+    const fileExt = file.name.split(".").pop();
+    const fileName = `cover-${Date.now()}.${fileExt}`;
+    const filePath = `document-covers/${fileName}`;
 
     const { data, error } = await supabase.storage
-      .from('images')
-      .upload(filePath, file)
+      .from("images")
+      .upload(filePath, file);
 
-    if (error) throw error
+    if (error) throw error;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('images')
-      .getPublicUrl(filePath)
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("images").getPublicUrl(filePath);
 
-    return publicUrl
-  }
+    return publicUrl;
+  };
 
   const handleUpload = async () => {
-    if (!['librarian', 'admin'].includes(role)) {
-      setMessage('Access denied. Only librarians and admins can upload documents.')
-      return
+    if (!["librarian", "admin"].includes(role)) {
+      setMessage(
+        "Access denied. Only librarians and admins can upload documents."
+      );
+      return;
     }
 
     if (!file || !documentName.trim()) {
-      setMessage('Please select a PDF file and enter a document name.')
-      return
+      setMessage("Please select a PDF file and enter a document name.");
+      return;
     }
 
-    setUploading(true)
-    setMessage('')
+    setUploading(true);
+    setMessage("");
 
     try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Date.now()}.${fileExt}`
-      const filePath = `pdfs/${fileName}`
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `pdfs/${fileName}`;
 
       // Upload PDF file to storage
       const { data: storageData, error: storageError } = await supabase.storage
-        .from('books')
+        .from("books")
         .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (storageError) {
-        throw storageError
+        throw storageError;
       }
 
       // Upload cover image if provided
-      let coverImageUrl = null
+      let coverImageUrl = null;
       if (coverImage) {
-        coverImageUrl = await uploadCoverImage(coverImage)
+        coverImageUrl = await uploadCoverImage(coverImage);
       }
 
       // Save document metadata to database
       const { data: dbData, error: dbError } = await supabase
-        .from('documents')
+        .from("documents")
         .insert([
           {
             name: documentName.trim(),
@@ -106,36 +108,36 @@ export default function PdfUpload() {
             size: file.size,
             flipbook_url: flipbookUrl.trim() || null,
             cover_image_url: coverImageUrl,
-            uploaded_by: (await supabase.auth.getUser()).data.user?.id
-          }
-        ])
+            uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          },
+        ]);
 
       if (dbError) {
         // If database insert fails, try to delete the uploaded files
-        await supabase.storage.from('books').remove([filePath])
+        await supabase.storage.from("books").remove([filePath]);
         if (coverImageUrl) {
           // Note: We can't easily delete from images bucket without the file path
           // In production, you might want to implement cleanup logic
         }
-        throw dbError
+        throw dbError;
       }
 
-      setMessage('PDF uploaded successfully!')
-      setFile(null)
-      setDocumentName('')
-      setFlipbookUrl('')
-      setCoverImage(null)
-      setCoverPreviewUrl(null)
+      setMessage("PDF uploaded successfully!");
+      setFile(null);
+      setDocumentName("");
+      setFlipbookUrl("");
+      setCoverImage(null);
+      setCoverPreviewUrl(null);
       // Reset file inputs
-      document.getElementById('pdf-input').value = ''
-      document.getElementById('cover-input').value = ''
+      document.getElementById("pdf-input").value = "";
+      document.getElementById("cover-input").value = "";
     } catch (error) {
-      console.error('Error uploading PDF:', error)
-      setMessage('Error uploading PDF. Please try again.')
+      console.error("Error uploading PDF:", error);
+      setMessage("Error uploading PDF. Please try again.");
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -145,23 +147,29 @@ export default function PdfUpload() {
           <p className="mt-2 text-gray-600">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   console.log(role);
-  if (!['librarian', 'admin'].includes(role)) {
+  if (!["librarian", "admin"].includes(role)) {
     return (
       <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
         <div className="text-center">
           <div className="text-red-500 text-4xl mb-4">🚫</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Access Denied</h3>
-          <p className="text-gray-600">Only librarians and admins can upload documents.</p>
-          {role === 'student' && (
-            <p className="text-sm text-gray-500 mt-2">Your current role: Student</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Access Denied
+          </h3>
+          <p className="text-gray-600">
+            Only librarians and admins can upload documents.
+          </p>
+          {role === "student" && (
+            <p className="text-sm text-gray-500 mt-2">
+              Your current role: Student
+            </p>
           )}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -181,7 +189,10 @@ export default function PdfUpload() {
 
       {file && (
         <div className="mb-4">
-          <label htmlFor="document-name" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="document-name"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Document Name
           </label>
           <input
@@ -198,7 +209,10 @@ export default function PdfUpload() {
 
       {file && (
         <div className="mb-4">
-          <label htmlFor="flipbook-url" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="flipbook-url"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             FlipHTML5 Flipbook URL (Optional)
           </label>
           <input
@@ -218,7 +232,10 @@ export default function PdfUpload() {
 
       {file && (
         <div className="mb-4">
-          <label htmlFor="cover-input" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="cover-input"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Cover Image (Optional)
           </label>
           <input
@@ -237,7 +254,9 @@ export default function PdfUpload() {
 
       {coverPreviewUrl && (
         <div className="mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-2">Cover Preview:</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">
+            Cover Preview:
+          </p>
           <div className="w-32 h-40 bg-gray-200 rounded overflow-hidden mx-auto">
             <img
               src={coverPreviewUrl}
@@ -253,14 +272,18 @@ export default function PdfUpload() {
         disabled={!file || !documentName.trim() || uploading}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-md transition duration-200"
       >
-        {uploading ? 'Uploading...' : 'Upload PDF'}
+        {uploading ? "Uploading..." : "Upload PDF"}
       </button>
 
       {message && (
-        <p className={`mt-4 text-sm ${message.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+        <p
+          className={`mt-4 text-sm ${
+            message.includes("Error") ? "text-red-600" : "text-green-600"
+          }`}
+        >
           {message}
         </p>
       )}
     </div>
-  )
+  );
 }

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { supabase } from "./supabaseClient";
-import useUserRole from "./useUserRole";
+import { supabase } from "../supabase/supabaseClient";
+import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
-import { generateBookRecommendations } from "./geminiUtils";
+import { generateBookRecommendations } from "../utils/geminiUtils";
 import { BookOpen, Star, Sparkles, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 

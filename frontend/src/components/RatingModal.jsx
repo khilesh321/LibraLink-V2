@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../supabase/supabaseClient";
 import { toast } from "react-toastify";
 import { Star, X } from "lucide-react";
 

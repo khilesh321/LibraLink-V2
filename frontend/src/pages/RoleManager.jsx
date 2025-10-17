@@ -1,75 +1,83 @@
-import { useState, useEffect } from 'react'
-import { supabase } from './supabaseClient'
-import useUserRole from './useUserRole'
-import { toast } from 'react-toastify'
+import { useState, useEffect } from "react";
+import { supabase } from "../supabase/supabaseClient";
+import useUserRole from "../supabase/useUserRole";
+import { toast } from "react-toastify";
 
 export default function RoleManager() {
-  const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const { role: currentUserRole } = useUserRole()
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { role: currentUserRole } = useUserRole();
 
   useEffect(() => {
-    if (currentUserRole === 'admin') {
-      fetchUsers()
+    if (currentUserRole === "admin") {
+      fetchUsers();
     }
-  }, [currentUserRole])
+  }, [currentUserRole]);
 
   const fetchUsers = async () => {
     try {
       // Use the database function to get users with profiles and emails
-      const { data: users, error } = await supabase.rpc('get_users_with_profiles')
+      const { data: users, error } = await supabase.rpc(
+        "get_users_with_profiles"
+      );
 
       if (error) {
-        console.error('Error fetching users:', error)
-        return
+        console.error("Error fetching users:", error);
+        return;
       }
 
-      setUsers(users || [])
+      setUsers(users || []);
     } catch (error) {
-      console.error('Error fetching users:', error)
+      console.error("Error fetching users:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const updateUserRole = async (userId, newRole) => {
     try {
-      console.log('Updating user role:', userId, 'to', newRole)
+      console.log("Updating user role:", userId, "to", newRole);
 
       // Use the database function to update user role
-      const { data, error } = await supabase.rpc('update_user_role', {
+      const { data, error } = await supabase.rpc("update_user_role", {
         target_user_id: userId,
-        new_role: newRole
-      })
+        new_role: newRole,
+      });
 
       if (error) {
-        console.error('Error updating role:', error)
-        toast.error(`Failed to update user role: ${error.message}`)
-        return
+        console.error("Error updating role:", error);
+        toast.error(`Failed to update user role: ${error.message}`);
+        return;
       }
 
-      console.log('Role updated successfully')
+      console.log("Role updated successfully");
       // Update local state
-      setUsers(users.map(user =>
-        user.id === userId ? { ...user, role: newRole } : user
-      ))
-      toast.success('Role updated successfully')
+      setUsers(
+        users.map((user) =>
+          user.id === userId ? { ...user, role: newRole } : user
+        )
+      );
+      toast.success("Role updated successfully");
     } catch (error) {
-      console.error('Error updating role:', error)
-      toast.error('Failed to update user role')
+      console.error("Error updating role:", error);
+      toast.error("Failed to update user role");
     }
-  }
+  };
 
-  if (currentUserRole !== 'admin') {
+  if (currentUserRole !== "admin") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-4xl mb-4">🚫</div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">Only administrators can manage user roles.</p>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            Access Denied
+          </h2>
+          <p className="text-gray-600">
+            Only administrators can manage user roles.
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -80,7 +88,7 @@ export default function RoleManager() {
           <p className="mt-4 text-gray-600">Loading users...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -88,7 +96,9 @@ export default function RoleManager() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-md">
           <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">User Role Management</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">
+              User Role Management
+            </h1>
 
             <div className="overflow-x-auto">
               <table className="min-w-full table-auto">
@@ -115,39 +125,43 @@ export default function RoleManager() {
                         {user.email}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.role === 'admin'
-                            ? 'bg-red-100 text-red-800'
-                            : user.role === 'librarian'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            user.role === "admin"
+                              ? "bg-red-100 text-red-800"
+                              : user.role === "librarian"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
                           {user.role}
                         </span>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'Never'}
+                        {user.last_sign_in_at
+                          ? new Date(user.last_sign_in_at).toLocaleDateString()
+                          : "Never"}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        {user.role !== 'student' && (
+                        {user.role !== "student" && (
                           <button
-                            onClick={() => updateUserRole(user.id, 'student')}
+                            onClick={() => updateUserRole(user.id, "student")}
                             className="text-green-600 hover:text-green-900"
                           >
                             Make Student
                           </button>
                         )}
-                        {user.role !== 'librarian' && (
+                        {user.role !== "librarian" && (
                           <button
-                            onClick={() => updateUserRole(user.id, 'librarian')}
+                            onClick={() => updateUserRole(user.id, "librarian")}
                             className="text-blue-600 hover:text-blue-900"
                           >
                             Make Librarian
                           </button>
                         )}
-                        {user.role !== 'admin' && (
+                        {user.role !== "admin" && (
                           <button
-                            onClick={() => updateUserRole(user.id, 'admin')}
+                            onClick={() => updateUserRole(user.id, "admin")}
                             className="text-red-600 hover:text-red-900"
                           >
                             Make Admin
@@ -163,5 +177,5 @@ export default function RoleManager() {
         </div>
       </div>
     </div>
-  )
+  );
 }

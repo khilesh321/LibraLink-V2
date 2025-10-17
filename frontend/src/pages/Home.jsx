@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
-import { supabase } from "./supabaseClient";
-import useUserRole from "./useUserRole";
+import { supabase } from "../supabase/supabaseClient";
+import useUserRole from "../supabase/useUserRole";
 import {
   BookOpen,
   QrCode,
@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Spline from "@splinetool/react-spline";
 import { AnimatePresence, motion } from "framer-motion";
-import AnimatedShowcase from "./components/AnimatedShowcase";
+import AnimatedShowcase from "../components/AnimatedShowcase";
 
 export default function Home() {
   const { role, loading: roleLoading } = useUserRole();

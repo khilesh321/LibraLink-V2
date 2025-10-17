@@ -1,182 +1,188 @@
-import { useState, useEffect } from 'react'
-import { supabase } from './supabaseClient'
-import useUserRole from './useUserRole'
-import { toast } from 'react-toastify'
+import { useState, useEffect } from "react";
+import { supabase } from "../supabase/supabaseClient";
+import useUserRole from "../supabase/useUserRole";
+import { toast } from "react-toastify";
 
 export default function Resources() {
-  const [pdfs, setPdfs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [selectedFlipbook, setSelectedFlipbook] = useState(null)
-  const [readPopup, setReadPopup] = useState(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const { role } = useUserRole()
+  const [pdfs, setPdfs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedFlipbook, setSelectedFlipbook] = useState(null);
+  const [readPopup, setReadPopup] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { role } = useUserRole();
 
   useEffect(() => {
-    fetchPdfs()
-  }, [])
+    fetchPdfs();
+  }, []);
 
   const fetchPdfs = async () => {
     try {
       const { data, error } = await supabase
-        .from('documents')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("documents")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) {
-        throw error
+        throw error;
       }
 
-      setPdfs(data || [])
+      setPdfs(data || []);
     } catch (error) {
-      console.error('Error fetching PDFs:', error)
-      setError('Failed to load documents')
+      console.error("Error fetching PDFs:", error);
+      setError("Failed to load documents");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const downloadPdf = async (doc) => {
     try {
       // Create a signed URL for download
       const { data: signedUrlData, error } = await supabase.storage
-        .from('books')
-        .createSignedUrl(doc.filepath, 300) // 5 minutes expiry
+        .from("books")
+        .createSignedUrl(doc.filepath, 300); // 5 minutes expiry
 
       if (error) {
-        throw error
+        throw error;
       }
 
       if (signedUrlData?.signedUrl) {
         // Fetch the file and create a download link
-        const response = await fetch(signedUrlData.signedUrl)
+        const response = await fetch(signedUrlData.signedUrl);
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const blob = await response.blob()
-        const url = URL.createObjectURL(blob)
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
 
         // Create a temporary link and trigger download
-        const a = document.createElement('a')
-        a.href = url
-        a.download = doc.name + '.pdf'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = doc.name + ".pdf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
 
         // Clean up the object URL
-        URL.revokeObjectURL(url)
+        URL.revokeObjectURL(url);
       } else {
-        throw new Error('Could not generate download URL')
+        throw new Error("Could not generate download URL");
       }
     } catch (error) {
-      console.error('Error downloading PDF:', error)
-      toast.error('Failed to download PDF. Please try again.')
+      console.error("Error downloading PDF:", error);
+      toast.error("Failed to download PDF. Please try again.");
     }
-  }
+  };
 
   const readOnline = async (doc) => {
     try {
       // First try to get a public URL
       const { data: publicUrlData } = supabase.storage
-        .from('books')
-        .getPublicUrl(doc.filepath)
+        .from("books")
+        .getPublicUrl(doc.filepath);
 
       if (publicUrlData?.publicUrl) {
         // Check if the public URL works by making a HEAD request
-        const response = await fetch(publicUrlData.publicUrl, { method: 'HEAD' })
+        const response = await fetch(publicUrlData.publicUrl, {
+          method: "HEAD",
+        });
         if (response.ok) {
-          window.open(publicUrlData.publicUrl, '_blank')
-          return
+          window.open(publicUrlData.publicUrl, "_blank");
+          return;
         }
       }
 
       // If public URL doesn't work, create a signed URL (expires in 1 hour)
       const { data: signedUrlData, error: signedError } = await supabase.storage
-        .from('books')
-        .createSignedUrl(doc.filepath, 3600) // 1 hour expiry
+        .from("books")
+        .createSignedUrl(doc.filepath, 3600); // 1 hour expiry
 
       if (signedError) {
-        throw signedError
+        throw signedError;
       }
 
       if (signedUrlData?.signedUrl) {
-        window.open(signedUrlData.signedUrl, '_blank')
+        window.open(signedUrlData.signedUrl, "_blank");
       } else {
-        throw new Error('Could not generate access URL')
+        throw new Error("Could not generate access URL");
       }
     } catch (error) {
-      console.error('Error reading PDF:', error)
-      toast.error('Failed to open PDF. The file might not exist or you may not have permission to access it.')
+      console.error("Error reading PDF:", error);
+      toast.error(
+        "Failed to open PDF. The file might not exist or you may not have permission to access it."
+      );
     }
-  }
+  };
 
   const openReadPopup = (doc) => {
-    setReadPopup(doc)
-  }
+    setReadPopup(doc);
+  };
 
   const handleReadOption = async (option) => {
-    const doc = readPopup
-    setReadPopup(null)
+    const doc = readPopup;
+    setReadPopup(null);
 
-    if (option === 'flipbook') {
-      setSelectedFlipbook(doc)
-    } else if (option === 'online') {
-      await readOnline(doc)
+    if (option === "flipbook") {
+      setSelectedFlipbook(doc);
+    } else if (option === "online") {
+      await readOnline(doc);
     }
-  }
+  };
 
   const handleEditResource = (resourceId) => {
-    window.location.href = `/resources/edit/${resourceId}`
-  }
+    window.location.href = `/resources/edit/${resourceId}`;
+  };
 
   const handleDeleteResource = async (resourceId) => {
-    if (!confirm('Are you sure you want to delete this resource? This action cannot be undone.')) {
-      return
+    if (
+      !confirm(
+        "Are you sure you want to delete this resource? This action cannot be undone."
+      )
+    ) {
+      return;
     }
 
     try {
       // First, get the resource details to delete the file from storage
       const { data: resource, error: fetchError } = await supabase
-        .from('documents')
-        .select('filepath')
-        .eq('id', resourceId)
-        .single()
+        .from("documents")
+        .select("filepath")
+        .eq("id", resourceId)
+        .single();
 
-      if (fetchError) throw fetchError
+      if (fetchError) throw fetchError;
 
       // Delete the file from storage
       if (resource?.filepath) {
-        await supabase.storage
-          .from('books')
-          .remove([resource.filepath])
+        await supabase.storage.from("books").remove([resource.filepath]);
       }
 
       // Delete the database record
       const { error: deleteError } = await supabase
-        .from('documents')
+        .from("documents")
         .delete()
-        .eq('id', resourceId)
+        .eq("id", resourceId);
 
-      if (deleteError) throw deleteError
+      if (deleteError) throw deleteError;
 
-      toast.success('Resource deleted successfully!')
-      fetchPdfs()
+      toast.success("Resource deleted successfully!");
+      fetchPdfs();
     } catch (error) {
-      console.error('Error deleting resource:', error)
-      toast.error('Failed to delete resource: ' + error.message)
+      console.error("Error deleting resource:", error);
+      toast.error("Failed to delete resource: " + error.message);
     }
-  }
+  };
 
   // Filter PDFs based on search query
   const filteredPdfs = pdfs.filter((pdf) => {
-    const query = searchQuery.toLowerCase()
+    const query = searchQuery.toLowerCase();
     return (
       pdf.name?.toLowerCase().includes(query) ||
       pdf.description?.toLowerCase().includes(query)
-    )
-  })
+    );
+  });
 
   if (loading) {
     return (
@@ -186,7 +192,7 @@ export default function Resources() {
           <p className="mt-4 text-gray-600">Loading resources...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -202,7 +208,7 @@ export default function Resources() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -211,8 +217,10 @@ export default function Resources() {
       <div className="bg-white shadow">
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">Library Resources</h1>
-            {['librarian', 'admin'].includes(role) && (
+            <h1 className="text-3xl font-bold text-gray-900">
+              Library Resources
+            </h1>
+            {["librarian", "admin"].includes(role) && (
               <a
                 href="/upload"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
@@ -230,8 +238,18 @@ export default function Resources() {
           <div className="max-w-md mx-auto">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
               <input
@@ -243,11 +261,21 @@ export default function Resources() {
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => setSearchQuery("")}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               )}
@@ -256,7 +284,8 @@ export default function Resources() {
           {searchQuery && (
             <div className="text-center mt-2">
               <span className="text-sm text-gray-600">
-                Found {filteredPdfs.length} resource{filteredPdfs.length !== 1 ? 's' : ''} matching "{searchQuery}"
+                Found {filteredPdfs.length} resource
+                {filteredPdfs.length !== 1 ? "s" : ""} matching "{searchQuery}"
               </span>
             </div>
           )}
@@ -269,25 +298,24 @@ export default function Resources() {
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📚</div>
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              {searchQuery ? 'No resources found' : 'No PDFs uploaded yet'}
+              {searchQuery ? "No resources found" : "No PDFs uploaded yet"}
             </h2>
             <p className="text-gray-600 mb-6">
-              {searchQuery 
+              {searchQuery
                 ? `No resources match your search for "${searchQuery}". Try different keywords.`
-                : ['librarian', 'admin'].includes(role)
-                ? 'Be the first to upload a PDF to the library!'
-                : 'No documents available yet.'
-              }
+                : ["librarian", "admin"].includes(role)
+                ? "Be the first to upload a PDF to the library!"
+                : "No documents available yet."}
             </p>
             {searchQuery ? (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => setSearchQuery("")}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition duration-200"
               >
                 Clear Search
               </button>
             ) : (
-              ['librarian', 'admin'].includes(role) && (
+              ["librarian", "admin"].includes(role) && (
                 <a
                   href="/upload"
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition duration-200"
@@ -300,7 +328,10 @@ export default function Resources() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredPdfs.map((pdf) => (
-              <div key={pdf.id} className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[72.5vh] duration-300">
+              <div
+                key={pdf.id}
+                className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[72.5vh] duration-300"
+              >
                 <div className="w-full bg-gray-200 overflow-hidden">
                   {pdf.cover_image_url ? (
                     <img
@@ -314,11 +345,14 @@ export default function Resources() {
                     </div>
                   )}
                 </div>
-                <div className={`p-6 ${pdf.cover_image_url && 'md:mt-5'}`}>
+                <div className={`p-6 ${pdf.cover_image_url && "md:mt-5"}`}>
                   <div className="flex items-center mb-4">
                     <div className="flex-1">
                       <div className="flex items-center">
-                        <h3 className="font-semibold text-gray-900 truncate mr-2" title={pdf.name}>
+                        <h3
+                          className="font-semibold text-gray-900 truncate mr-2"
+                          title={pdf.name}
+                        >
                           {pdf.name}
                         </h3>
                         {pdf.flipbook_url && (
@@ -352,7 +386,7 @@ export default function Resources() {
                   </div>
 
                   {/* Admin/Librarian Actions */}
-                  {['librarian', 'admin'].includes(role) && (
+                  {["librarian", "admin"].includes(role) && (
                     <div className="flex space-x-2 mt-2 pt-2 border-t border-gray-200">
                       <button
                         onClick={() => handleEditResource(pdf.id)}
@@ -380,7 +414,9 @@ export default function Resources() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">{selectedFlipbook.name}</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {selectedFlipbook.name}
+              </h3>
               <button
                 onClick={() => setSelectedFlipbook(null)}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
@@ -412,7 +448,9 @@ export default function Resources() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
             <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">Read Options</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Read Options
+              </h3>
               <button
                 onClick={() => setReadPopup(null)}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
@@ -423,7 +461,7 @@ export default function Resources() {
             <div className="p-4 space-y-3">
               {readPopup.flipbook_url && (
                 <button
-                  onClick={() => handleReadOption('flipbook')}
+                  onClick={() => handleReadOption("flipbook")}
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
                 >
                   <span>📖</span>
@@ -431,7 +469,7 @@ export default function Resources() {
                 </button>
               )}
               <button
-                onClick={() => handleReadOption('online')}
+                onClick={() => handleReadOption("online")}
                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
               >
                 <span>🌐</span>
@@ -442,5 +480,5 @@ export default function Resources() {
         </div>
       )}
     </div>
-  )
+  );
 }

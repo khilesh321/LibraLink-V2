@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../supabase/supabaseClient";
 import { X, BookOpen, User, Calendar, Hash, Star } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
