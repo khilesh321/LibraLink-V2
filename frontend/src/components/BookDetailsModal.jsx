@@ -76,27 +76,18 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
             .select("*")
             .eq("user_id", user.id)
             .eq("book_id", bookId)
-            .eq("action", "issue")
             .order("transaction_date", { ascending: false })
             .limit(1);
 
         if (
           !transactionError &&
           transactionData &&
-          transactionData.length > 0
+          transactionData.length > 0 &&
+          transactionData[0].action === "issue"
         ) {
-          // Check if book has been returned
-          const { data: returnData } = await supabase
-            .from("book_transactions")
-            .select("*")
-            .eq("user_id", user.id)
-            .eq("book_id", bookId)
-            .eq("action", "return")
-            .gte("transaction_date", transactionData[0].transaction_date);
-
-          if (!returnData || returnData.length === 0) {
-            setUserTransaction(transactionData[0]);
-          }
+          setUserTransaction(transactionData[0]);
+        } else {
+          setUserTransaction(null);
         }
       }
 
@@ -341,7 +332,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                           <button
                             onClick={handleIssueBook}
                             disabled={actionLoading || !availability}
-                            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
+                            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <BookOpen className="w-4 h-4" />
                             {actionLoading
