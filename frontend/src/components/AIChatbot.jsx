@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import ReactMarkdown from 'react-markdown';
 
 const AIChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +14,7 @@ const AIChatbot = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const messagesEndRef = useRef(null);
 
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
@@ -97,6 +99,13 @@ Always be friendly, helpful, and knowledgeable about library operations. Remembe
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
+    if (isFullscreen) {
+      setIsFullscreen(false);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
   };
 
   return (
@@ -126,7 +135,11 @@ Always be friendly, helpful, and knowledgeable about library operations. Remembe
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-lg shadow-2xl z-50 flex flex-col border border-gray-200">
+        <div data-lenis-prevent className={`fixed bg-white rounded-lg shadow-2xl z-50 flex flex-col border border-gray-200 transition-all duration-300 ${
+          isFullscreen
+            ? 'inset-4 w-auto h-auto'
+            : 'bottom-24 right-6 w-96 h-[500px]'
+        }`}>
           {/* Chat Header */}
           <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -145,43 +158,105 @@ Always be friendly, helpful, and knowledgeable about library operations. Remembe
               </svg>
               <h3 className="font-semibold">AI Assistant</h3>
             </div>
-            <button
-              onClick={toggleChat}
-              className="text-white hover:text-gray-200 transition-colors cursor-pointer"
-              aria-label="Close chat"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={toggleFullscreen}
+                className="text-white hover:text-gray-200 transition-colors cursor-pointer"
+                aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+                {isFullscreen ? (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 9V4.5M9 9H4.5M9 9L3.5 3.5M15 9h4.5M15 9V4.5M15 9l5.5-5.5M9 15v4.5M9 15H4.5M9 15l-5.5 5.5M15 15h4.5M15 15v4.5m0-4.5l5.5 5.5"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 3l-6 6m0 0V4m0 5h5M3 21l6-6m0 0v5m0-5H4"
+                    />
+                  </svg>
+                )}
+              </button>
+              <button
+                onClick={toggleChat}
+                className="text-white hover:text-gray-200 transition-colors cursor-pointer"
+                aria-label="Close chat"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${
+            isFullscreen ? 'bg-gray-50' : 'bg-gray-50'
+          }`}>
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  className={`${
+                    isFullscreen ? 'max-w-4xl' : 'max-w-xs lg:max-w-md'
+                  } px-4 py-3 rounded-lg shadow-sm ${
                     message.sender === 'user'
                       ? 'bg-blue-600 text-white'
                       : 'bg-white text-gray-800 border border-gray-200'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                  <p className={`text-xs mt-1 ${
+                  {message.sender === 'ai' ? (
+                    <div className="prose prose-sm max-w-none">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                          strong: ({ children }) => <strong className="font-semibold text-blue-700">{children}</strong>,
+                          code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</code>,
+                          pre: ({ children }) => <pre className="bg-gray-100 p-3 rounded-md overflow-x-auto text-sm">{children}</pre>,
+                          h1: ({ children }) => <h1 className="text-lg font-bold mb-2 text-blue-800">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-base font-bold mb-2 text-blue-800">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-blue-800">{children}</h3>,
+                        }}
+                      >
+                        {message.text}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                  )}
+                  <p className={`text-xs mt-2 ${
                     message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
                   }`}>
                     {message.timestamp.toLocaleTimeString([], {
@@ -210,21 +285,25 @@ Always be friendly, helpful, and knowledgeable about library operations. Remembe
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-gray-200 bg-white rounded-b-lg">
-            <div className="flex space-x-2">
+          <div className={`border-t border-gray-200 bg-white rounded-b-lg ${
+            isFullscreen ? 'p-6' : 'p-4'
+          }`}>
+            <div className="flex space-x-3">
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                  isFullscreen ? 'text-base' : 'text-sm'
+                }`}
                 disabled={isLoading}
               />
               <button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:cursor-not-allowed cursor-pointer"
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-5 py-3 rounded-lg transition-all duration-200 disabled:cursor-not-allowed cursor-pointer hover:shadow-md disabled:hover:shadow-none"
               >
                 <svg
                   className="w-5 h-5"
