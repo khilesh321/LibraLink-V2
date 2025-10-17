@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
@@ -200,18 +201,18 @@ export default function MyTransactions() {
       {/* Page Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 My Transactions
               </h1>
               <p className="text-gray-600">View your book borrowing history</p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
               <button
                 onClick={handleExportPDF}
                 disabled={transactions.length === 0}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Export PDF
@@ -219,7 +220,7 @@ export default function MyTransactions() {
               <button
                 onClick={handleExportCSV}
                 disabled={transactions.length === 0}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Export CSV
@@ -232,7 +233,7 @@ export default function MyTransactions() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {transactions.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+          <div className="bg-white rounded-lg shadow-md p-6 sm:p-12 text-center">
             <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               No Transactions Yet
@@ -251,7 +252,7 @@ export default function MyTransactions() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
                 Transaction History ({transactions.length})
               </h2>
@@ -261,19 +262,19 @@ export default function MyTransactions() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Action
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Book Details
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Transaction Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Due Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Late Fees
                     </th>
                   </tr>
@@ -281,7 +282,7 @@ export default function MyTransactions() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {transactions.map((transaction, index) => (
                     <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {getActionIcon(transaction.action)}
                           <span
@@ -294,12 +295,12 @@ export default function MyTransactions() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">
                           📖{" "}
                           {books[transaction.book_id]?.title || "Unknown Book"}
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="hidden sm:block text-sm text-gray-600">
                           Book ID: {transaction.book_id}
                         </div>
                         <div className="text-sm text-gray-500">
@@ -312,13 +313,13 @@ export default function MyTransactions() {
                           </div>
                         )} */}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 mr-1 text-gray-400" />
                           {formatDate(transaction.transaction_date)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {transaction.due_date ? (
                           <div className="flex items-center">
                             <Clock className="w-4 h-4 mr-1 text-gray-400" />
@@ -328,7 +329,7 @@ export default function MyTransactions() {
                           <span className="text-gray-400">-</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                         {(() => {
                           const fees = calculateLateFees(transaction);
                           return fees > 0 ? (

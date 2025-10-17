@@ -216,14 +216,14 @@ export default function Resources() {
       {/* Header */}
       <div className="bg-white shadow">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
             <h1 className="text-3xl font-bold text-gray-900">
               Library Resources
             </h1>
             {["librarian", "admin"].includes(role) && (
               <a
                 href="/upload"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200 w-full sm:w-auto text-center"
               >
                 Upload PDF
               </a>
