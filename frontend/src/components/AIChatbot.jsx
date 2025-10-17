@@ -406,11 +406,14 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={toggleChat}
-          className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 cursor-pointer"
+          className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 cursor-pointer relative overflow-hidden group ${
+            isOpen ? 'animate-pulse' : ''
+          }`}
           aria-label="Open AI Chat"
         >
+          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <svg
-            className="w-6 h-6"
+            className={`w-6 h-6 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -422,43 +425,52 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
             />
           </svg>
+          {!isOpen && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+          )}
         </button>
       </div>
 
       {/* Chat Window */}
       {isOpen && (
-        <div data-lenis-prevent className={`fixed bg-white rounded-lg shadow-2xl z-50 flex flex-col border border-gray-200 transition-all duration-300 ${
+        <div data-lenis-prevent className={`fixed bg-white rounded-2xl shadow-2xl z-50 flex flex-col border border-gray-200/50 backdrop-blur-sm transition-all duration-500 ease-out transform ${
           isFullscreen
-            ? 'inset-4 w-auto h-auto'
-            : 'bottom-24 right-6 w-96 h-[500px]'
-        }`}>
+            ? 'inset-4 w-auto h-auto scale-100 opacity-100'
+            : 'bottom-24 right-6 w-96 h-[500px] scale-100 opacity-100'
+        } ${isOpen ? 'animate-in slide-in-from-bottom-4 fade-in duration-300' : 'animate-out slide-out-to-bottom-4 fade-out duration-200'}`}>
           {/* Chat Header */}
-          <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-              <h3 className="font-semibold">AI Assistant</h3>
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 text-white p-4 rounded-t-2xl flex items-center justify-between relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+            <div className="flex items-center space-x-3 relative z-10">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm">LibraLink Assistant</h3>
+                <p className="text-xs text-blue-100 opacity-90">Online • Ready to help</p>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 relative z-10">
               <button
                 onClick={toggleFullscreen}
-                className="text-white hover:text-gray-200 transition-colors cursor-pointer"
+                className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all duration-200 cursor-pointer"
                 aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
               >
                 {isFullscreen ? (
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -472,7 +484,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                   </svg>
                 ) : (
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -488,11 +500,11 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               </button>
               <button
                 onClick={toggleChat}
-                className="text-white hover:text-gray-200 transition-colors cursor-pointer"
+                className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all duration-200 cursor-pointer"
                 aria-label="Close chat"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -509,35 +521,36 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
           </div>
 
           {/* Messages Area */}
-          <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${
+          <div className={`flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white ${
             isFullscreen ? 'bg-gray-50' : 'bg-gray-50'
           }`}>
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 fade-in duration-300`}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div
                   className={`${
                     isFullscreen ? 'max-w-4xl' : 'max-w-xs lg:max-w-md'
-                  } px-4 py-3 rounded-lg shadow-sm ${
+                  } px-4 py-3 rounded-2xl shadow-sm relative group transition-all duration-200 hover:shadow-md ${
                     message.sender === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-800 border border-gray-200'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md'
+                      : 'bg-white text-gray-800 border border-gray-100 rounded-bl-md'
                   }`}
                 >
                   {message.sender === 'ai' ? (
                     <div className="prose prose-sm max-w-none">
                       <ReactMarkdown
                         components={{
-                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                          ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                          p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1 text-gray-700">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1 text-gray-700">{children}</ol>,
                           li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                           strong: ({ children }) => <strong className="font-semibold text-blue-700">{children}</strong>,
-                          code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</code>,
-                          pre: ({ children }) => <pre className="bg-gray-100 p-3 rounded-md overflow-x-auto text-sm">{children}</pre>,
-                          h1: ({ children }) => <h1 className="text-lg font-bold mb-2 text-blue-800">{children}</h1>,
+                          code: ({ children }) => <code className="bg-blue-50 text-blue-800 px-2 py-1 rounded-md text-sm font-mono border">{children}</code>,
+                          pre: ({ children }) => <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto text-sm border">{children}</pre>,
+                          h1: ({ children }) => <h1 className="text-lg font-bold mb-2 text-blue-800 border-b border-blue-200 pb-1">{children}</h1>,
                           h2: ({ children }) => <h2 className="text-base font-bold mb-2 text-blue-800">{children}</h2>,
                           h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-blue-800">{children}</h3>,
                         }}
@@ -546,9 +559,9 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.text}</p>
                   )}
-                  <p className={`text-xs mt-2 ${
+                  <p className={`text-xs mt-2 opacity-70 ${
                     message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
                   }`}>
                     {message.timestamp.toLocaleTimeString([], {
@@ -560,15 +573,17 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               </div>
             ))}
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg">
-                  <div className="flex items-center space-x-2">
+              <div className="flex justify-start animate-in slide-in-from-bottom-2 fade-in duration-300">
+                <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-md shadow-sm">
+                  <div className="flex items-center space-x-3">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-500">AI is typing...</span>
+                    <span className="text-sm text-gray-600 font-medium">AI is thinking...</span>
                   </div>
                 </div>
               </div>
@@ -577,40 +592,61 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
           </div>
 
           {/* Input Area */}
-          <div className={`border-t border-gray-200 bg-white rounded-b-lg ${
+          <div className={`border-t border-gray-200/50 bg-white/80 backdrop-blur-sm rounded-b-2xl ${
             isFullscreen ? 'p-6' : 'p-4'
           }`}>
             <div className="flex space-x-3">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
-                className={`flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                  isFullscreen ? 'text-base' : 'text-sm'
-                }`}
-                disabled={isLoading}
-              />
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me anything about the library..."
+                  className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 transition-all duration-200 bg-white/50 backdrop-blur-sm ${
+                    isFullscreen ? 'text-base' : 'text-sm'
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={isLoading}
+                />
+                {inputMessage && (
+                  <button
+                    onClick={() => setInputMessage('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
               <button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-5 py-3 rounded-lg transition-all duration-200 disabled:cursor-not-allowed cursor-pointer hover:shadow-md disabled:hover:shadow-none"
+                className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-5 py-3 rounded-xl transition-all duration-200 disabled:cursor-not-allowed cursor-pointer hover:shadow-lg disabled:hover:shadow-none transform hover:scale-105 disabled:hover:scale-100 ${
+                  isLoading ? 'animate-pulse' : ''
+                }`}
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
+                  </svg>
+                )}
               </button>
+            </div>
+            <div className="mt-2 text-xs text-gray-500 text-center">
+              Press Enter to send • Type your library questions
             </div>
           </div>
         </div>
@@ -618,5 +654,68 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
     </>
   );
 };
+
+// Custom styles for enhanced animations
+const styles = `
+  @keyframes messageSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes chatWindowSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes typingDots {
+    0%, 80%, 100% {
+      transform: scale(0.8);
+      opacity: 0.5;
+    }
+    40% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-message-in {
+    animation: messageSlideIn 0.3s ease-out forwards;
+  }
+
+  .animate-chat-in {
+    animation: chatWindowSlideIn 0.4s ease-out forwards;
+  }
+
+  .typing-dot {
+    animation: typingDots 1.4s infinite ease-in-out;
+  }
+
+  .typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
+}
 
 export default AIChatbot;
