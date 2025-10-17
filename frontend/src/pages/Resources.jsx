@@ -10,6 +10,7 @@ export default function Resources() {
   const [selectedFlipbook, setSelectedFlipbook] = useState(null);
   const [readPopup, setReadPopup] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sizeFilter, setSizeFilter] = useState("all");
   const { role } = useUserRole();
 
   useEffect(() => {
@@ -175,13 +176,20 @@ export default function Resources() {
     }
   };
 
-  // Filter PDFs based on search query
+  // Filter PDFs based on search query and file size
   const filteredPdfs = pdfs.filter((pdf) => {
     const query = searchQuery.toLowerCase();
-    return (
+    const matchesSearch =
       pdf.name?.toLowerCase().includes(query) ||
-      pdf.description?.toLowerCase().includes(query)
-    );
+      pdf.description?.toLowerCase().includes(query);
+
+    const fileSizeMB = pdf.size / 1024 / 1024;
+    const matchesSize = sizeFilter === "all" ||
+      (sizeFilter === "small" && fileSizeMB < 5) ||
+      (sizeFilter === "medium" && fileSizeMB >= 5 && fileSizeMB < 20) ||
+      (sizeFilter === "large" && fileSizeMB >= 20);
+
+    return matchesSearch && matchesSize;
   });
 
   if (loading) {
@@ -238,37 +246,13 @@ export default function Resources() {
       {/* Search Bar */}
       <div className="bg-gray-50 border-b">
         <div className="container mx-auto px-4 py-6">
-          <div className="max-w-md mx-auto">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg
-                  className="h-5 w-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search resources by name or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Search Input */}
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
-                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                    className="h-5 w-5 text-gray-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -277,18 +261,62 @@ export default function Resources() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
-                </button>
-              )}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search resources by name or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg
+                      className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {/* File Size Filter */}
+              <div className="sm:w-48">
+                <select
+                  value={sizeFilter}
+                  onChange={(e) => setSizeFilter(e.target.value)}
+                  className="block w-full py-3 px-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Sizes</option>
+                  <option value="small">Small (&lt; 5MB)</option>
+                  <option value="medium">Medium (5-20MB)</option>
+                  <option value="large">Large (&gt; 20MB)</option>
+                </select>
+              </div>
             </div>
           </div>
-          {searchQuery && (
+          {(searchQuery || sizeFilter !== "all") && (
             <div className="text-center mt-2">
               <span className="text-sm text-gray-600">
                 Found {filteredPdfs.length} resource
-                {filteredPdfs.length !== 1 ? "s" : ""} matching "{searchQuery}"
+                {filteredPdfs.length !== 1 ? "s" : ""}
+                {searchQuery && ` matching "${searchQuery}"`}
+                {searchQuery && sizeFilter !== "all" && " and"}
+                {sizeFilter !== "all" && ` ${sizeFilter === "small" ? "< 5MB" : sizeFilter === "medium" ? "5-20MB" : "> 20MB"}`}
               </span>
             </div>
           )}

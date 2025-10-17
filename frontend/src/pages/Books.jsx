@@ -13,6 +13,7 @@ export default function Books() {
   const [userTransactions, setUserTransactions] = useState([]);
   const [actionLoading, setActionLoading] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [ratingFilter, setRatingFilter] = useState("all");
   const [selectedBookId, setSelectedBookId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ratingBookId, setRatingBookId] = useState(null);
@@ -316,15 +317,20 @@ export default function Books() {
     setSelectedBookId(null);
   };
 
-  // Filter books based on search query
+  // Filter books based on search query and rating
   const filteredBooks = books.filter((book) => {
     const query = searchQuery.toLowerCase();
-    return (
+    const matchesSearch =
       book.title?.toLowerCase().includes(query) ||
       book.author?.toLowerCase().includes(query) ||
       book.description?.toLowerCase().includes(query) ||
-      book.genre?.toLowerCase().includes(query)
-    );
+      book.genre?.toLowerCase().includes(query);
+
+    const matchesRating = ratingFilter === "all" ||
+      (ratingFilter === "unrated" && (!book.averageRating || book.averageRating === 0)) ||
+      (ratingFilter !== "unrated" && book.averageRating >= parseFloat(ratingFilter));
+
+    return matchesSearch && matchesRating;
   });
 
   if (loading || roleLoading) {
@@ -356,39 +362,15 @@ export default function Books() {
           )}
         </div>
 
-        {/* Search Bar */}
+        {/* Search and Filter Bar */}
         <div className="mb-8">
-          <div className="max-w-md mx-auto">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg
-                  className="h-5 w-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search books by title, author, or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Search Input */}
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
-                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                    className="h-5 w-5 text-gray-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -397,18 +379,66 @@ export default function Books() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
-                </button>
-              )}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search books by title, author, or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg
+                      className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {/* Rating Filter */}
+              <div className="sm:w-48">
+                <select
+                  value={ratingFilter}
+                  onChange={(e) => setRatingFilter(e.target.value)}
+                  className="block w-full py-3 px-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Ratings</option>
+                  <option value="9.0">9.0+ Stars</option>
+                  <option value="8.0">8.0+ Stars</option>
+                  <option value="7.0">7.0+ Stars</option>
+                  <option value="6.0">6.0+ Stars</option>
+                  <option value="5.0">5.0+ Stars</option>
+                  <option value="unrated">Unrated Only</option>
+                </select>
+              </div>
             </div>
           </div>
-          {searchQuery && (
+
+          {(searchQuery || ratingFilter !== "all") && (
             <div className="text-center mt-2">
               <span className="text-sm text-gray-600">
                 Found {filteredBooks.length} book
-                {filteredBooks.length !== 1 ? "s" : ""} matching "{searchQuery}"
+                {filteredBooks.length !== 1 ? "s" : ""}
+                {searchQuery && ` matching "${searchQuery}"`}
+                {searchQuery && ratingFilter !== "all" && " and"}
+                {ratingFilter !== "all" && ` ${ratingFilter === "unrated" ? "unrated" : ratingFilter + "+ rating"}`}
               </span>
             </div>
           )}
