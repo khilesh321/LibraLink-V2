@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 export default function RoleManager() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const { role: currentUserRole } = useUserRole();
 
   useEffect(() => {
@@ -64,6 +65,15 @@ export default function RoleManager() {
     }
   };
 
+  // Filter users based on search query
+  const filteredUsers = users.filter((user) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      user.email.toLowerCase().includes(query) ||
+      user.role.toLowerCase().includes(query)
+    );
+  });
+
   if (currentUserRole !== "admin") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -100,6 +110,61 @@ export default function RoleManager() {
               User Role Management
             </h1>
 
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search users by email or role..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg
+                      className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Results Summary */}
+            {searchQuery && (
+              <div className="mb-4 text-sm text-gray-600">
+                Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} matching "{searchQuery}"
+              </div>
+            )}
+
             <div className="overflow-x-auto">
               <table className="min-w-full table-auto">
                 <thead>
@@ -119,7 +184,7 @@ export default function RoleManager() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <tr key={user.id}>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {user.email}
@@ -173,6 +238,28 @@ export default function RoleManager() {
                 </tbody>
               </table>
             </div>
+
+            {filteredUsers.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-4xl mb-4">👥</div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {searchQuery ? "No users found" : "No users available"}
+                </h3>
+                <p className="text-gray-500">
+                  {searchQuery
+                    ? `No users match your search for "${searchQuery}". Try different keywords.`
+                    : "There are no users to manage at this time."}
+                </p>
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Clear search
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
