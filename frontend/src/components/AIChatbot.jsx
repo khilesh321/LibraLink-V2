@@ -17,6 +17,7 @@ const AIChatbot = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState(null);
   const messagesEndRef = useRef(null);
 
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
@@ -281,6 +282,19 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
     setInputMessage('');
     setIsLoading(true);
 
+    // Create a placeholder AI message for streaming
+    const aiMessageId = messages.length + 2;
+    const aiMessage = {
+      id: aiMessageId,
+      text: '',
+      sender: 'ai',
+      timestamp: new Date(),
+      isStreaming: true
+    };
+
+    setMessages(prev => [...prev, aiMessage]);
+    setStreamingMessageId(aiMessageId);
+
     try {
       // Start a chat session with conversation history
       const chat = model.startChat({
@@ -292,82 +306,97 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
           }))
       });
 
-      const result = await chat.sendMessage(inputMessage);
-      const response = await result.response;
-      let aiResponse = response.text();
+      // Use streaming API
+      const result = await chat.sendMessageStream(inputMessage);
+      let accumulatedText = '';
+
+      // Process the stream
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        accumulatedText += chunkText;
+
+        // Update the streaming message
+        setMessages(prev => prev.map(msg =>
+          msg.id === aiMessageId
+            ? { ...msg, text: accumulatedText }
+            : msg
+        ));
+      }
+
+      // Process special commands after streaming is complete
+      let finalResponse = accumulatedText;
 
       // Check for special commands in the AI response
-      if (aiResponse.includes('[BOOK_SEARCH:')) {
-        const searchMatch = aiResponse.match(/\[BOOK_SEARCH:(.*?)\]/);
+      if (finalResponse.includes('[BOOK_SEARCH:')) {
+        const searchMatch = finalResponse.match(/\[BOOK_SEARCH:(.*?)\]/);
         if (searchMatch) {
           const searchQuery = searchMatch[1].trim();
           const searchResults = await searchBooks(searchQuery);
-          
+
           if (searchResults.length > 0) {
-            aiResponse = `I found ${searchResults.length} book(s) related to "${searchQuery}":\n\n${searchResults.map((book, index) => 
+            finalResponse = `I found ${searchResults.length} book(s) related to "${searchQuery}":\n\n${searchResults.map((book, index) =>
               `${index + 1}. **${book.title}** by ${book.author || 'Unknown'}\n   ${book.available ? '✅ Available' : '❌ Currently borrowed'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
             ).join('\n\n')}\n\nWould you like me to help you borrow any of these books?`;
           } else {
-            aiResponse = `I couldn't find any books related to "${searchQuery}" in our library. Would you like me to suggest some similar topics or help you search for something else?`;
+            finalResponse = `I couldn't find any books related to "${searchQuery}" in our library. Would you like me to suggest some similar topics or help you search for something else?`;
           }
         }
-      } else if (aiResponse.includes('[BOOK_SUMMARY:')) {
-        const summaryMatch = aiResponse.match(/\[BOOK_SUMMARY:(.*?)\]/);
+      } else if (finalResponse.includes('[BOOK_SUMMARY:')) {
+        const summaryMatch = finalResponse.match(/\[BOOK_SUMMARY:(.*?)\]/);
         if (summaryMatch) {
           const bookTitle = summaryMatch[1].trim();
           const summary = await generateBookSummary(bookTitle);
-          aiResponse = `Here's a summary of "${bookTitle}":\n\n${summary}`;
+          finalResponse = `Here's a summary of "${bookTitle}":\n\n${summary}`;
         }
-      } else if (aiResponse.includes('[BOOK_SIMILAR:')) {
-        const similarMatch = aiResponse.match(/\[BOOK_SIMILAR:(.*?)\]/);
+      } else if (finalResponse.includes('[BOOK_SIMILAR:')) {
+        const similarMatch = finalResponse.match(/\[BOOK_SIMILAR:(.*?)\]/);
         if (similarMatch) {
           const bookTitle = similarMatch[1].trim();
           const similarBooks = await findSimilarBooks(bookTitle);
-          
+
           if (similarBooks.length === 0) {
-            aiResponse = `I'm sorry, but there are no similar books currently available to "${bookTitle}" in our library. Would you like me to search for a different topic or help you find books in a related area?`;
+            finalResponse = `I'm sorry, but there are no similar books currently available to "${bookTitle}" in our library. Would you like me to search for a different topic or help you find books in a related area?`;
           } else {
-            aiResponse = `Here are some books similar to "${bookTitle}" that are currently available:\n\n${similarBooks.map((book, index) => 
+            finalResponse = `Here are some books similar to "${bookTitle}" that are currently available:\n\n${similarBooks.map((book, index) =>
               `${index + 1}. **${book.title}** by ${book.author || 'Unknown'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
             ).join('\n\n')}\n\nWould you like me to help you borrow any of these books?`;
           }
         }
-      } else if (aiResponse.includes('[BOOK_RECOMMENDATIONS_BY_TOPIC:')) {
-        const topicMatch = aiResponse.match(/\[BOOK_RECOMMENDATIONS_BY_TOPIC:(.*?)\]/);
+      } else if (finalResponse.includes('[BOOK_RECOMMENDATIONS_BY_TOPIC:')) {
+        const topicMatch = finalResponse.match(/\[BOOK_RECOMMENDATIONS_BY_TOPIC:(.*?)\]/);
         if (topicMatch) {
           const topic = topicMatch[1].trim();
           const recommendations = await getBookRecommendations(topic);
-          
+
           if (recommendations.type === 'topic') {
             if (!recommendations.available || recommendations.books.length === 0) {
-              aiResponse = `I'm sorry, but there are no books currently available on "${topic}" in our library. Would you like me to search for a different topic or help you find books in a related area?`;
+              finalResponse = `I'm sorry, but there are no books currently available on "${topic}" in our library. Would you like me to search for a different topic or help you find books in a related area?`;
             } else {
-              aiResponse = `Here are some available books on "${topic}" that I recommend:\n\n${recommendations.books.map((book, index) => 
+              finalResponse = `Here are some available books on "${topic}" that I recommend:\n\n${recommendations.books.map((book, index) =>
                 `${index + 1}. **${book.title}** by ${book.author || 'Unknown'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
               ).join('\n\n')}\n\nWould you like me to help you borrow any of these books?`;
             }
           }
         }
-      } else if (aiResponse.includes('[BOOK_RECOMMENDATIONS]')) {
+      } else if (finalResponse.includes('[BOOK_RECOMMENDATIONS]')) {
         const recommendations = await getBookRecommendations();
-        
+
         if (recommendations.type === 'history' && recommendations.books.length > 0) {
-          aiResponse = `Based on your reading history, here are some book recommendations:\n\n${recommendations.books.map((rec, index) => 
+          finalResponse = `Based on your reading history, here are some book recommendations:\n\n${recommendations.books.map((rec, index) =>
             `${index + 1}. **${rec.title}** by ${rec.author}\n   *Why you'll like it:* ${rec.reason}\n   *Relevance:* ${rec.relevanceScore}/10`
           ).join('\n\n')}\n\nWould you like me to help you borrow any of these books?`;
         } else {
-          aiResponse = `I'd be happy to recommend some books! Since I don't have information about your reading preferences yet, here are some popular books from our collection. Try borrowing a few books first, and I can give you more personalized recommendations next time!`;
+          finalResponse = `I'd be happy to recommend some books! Since I don't have information about your reading preferences yet, here are some popular books from our collection. Try borrowing a few books first, and I can give you more personalized recommendations next time!`;
         }
       }
 
-      const aiMessage = {
-        id: messages.length + 2,
-        text: aiResponse,
-        sender: 'ai',
-        timestamp: new Date()
-      };
+      // Update the final message
+      setMessages(prev => prev.map(msg =>
+        msg.id === aiMessageId
+          ? { ...msg, text: finalResponse, isStreaming: false }
+          : msg
+      ));
 
-      setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Error sending message to Gemini:', error);
       const errorMessage = {
@@ -376,9 +405,14 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
         sender: 'ai',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => prev.map(msg =>
+        msg.id === aiMessageId
+          ? errorMessage
+          : msg
+      ));
     } finally {
       setIsLoading(false);
+      setStreamingMessageId(null);
     }
   };
 
@@ -557,6 +591,9 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                       >
                         {message.text}
                       </ReactMarkdown>
+                      {message.isStreaming && (
+                        <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>
+                      )}
                     </div>
                   ) : (
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.text}</p>
@@ -572,7 +609,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                 </div>
               </div>
             ))}
-            {isLoading && (
+            {isLoading && !streamingMessageId && (
               <div className="flex justify-start animate-in slide-in-from-bottom-2 fade-in duration-300">
                 <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-md shadow-sm">
                   <div className="flex items-center space-x-3">
