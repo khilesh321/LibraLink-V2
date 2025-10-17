@@ -473,7 +473,7 @@ export default function Books() {
               return (
                 <div
                   key={book.id}
-                  className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[72.5vh] duration-300"
+                  className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[70.5vh] duration-300"
                 >
                   <div className="bg-gray-200">
                     {book.cover_image_url ? (
@@ -483,7 +483,7 @@ export default function Books() {
                         className="w-full object-cover md:absolute md:group-hover:scale-x-0 mx-auto transition duration-300"
                       />
                     ) : (
-                      <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
+                      <div className="w-full h-54 bg-gray-300 flex items-center justify-center">
                         <span className="text-gray-500 text-sm">No Cover</span>
                       </div>
                     )}

@@ -3,7 +3,7 @@ import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
 import { generateBookRecommendations } from "../utils/geminiUtils";
-import { BookOpen, Star, Sparkles, Loader2, Eye } from "lucide-react";
+import { BookOpen, Star, Sparkles, Eye } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import BookDetailsModal from "../components/BookDetailsModal";
 
@@ -157,8 +157,8 @@ export default function Recommendations() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading recommendations...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading recommendations...</p>
         </div>
       </div>
     );
