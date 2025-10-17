@@ -514,7 +514,7 @@ export default function Resources() {
               </div>
               <div className="mt-4 text-center">
                 <p className="text-sm text-gray-600">
-                  Interactive flipbook powered by FlipHTML5
+                  Interactive Flipbook @LibraLink
                 </p>
               </div>
             </div>
