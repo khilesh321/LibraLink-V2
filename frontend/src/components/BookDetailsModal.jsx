@@ -1,7 +1,17 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
-import { X, BookOpen, User, Calendar, Hash, Star, CheckCircle, Clock, RotateCcw } from "lucide-react";
+import {
+  X,
+  BookOpen,
+  User,
+  Calendar,
+  Hash,
+  Star,
+  CheckCircle,
+  Clock,
+  RotateCcw,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "react-toastify";
 
@@ -27,7 +37,9 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
     setLoading(true);
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
 
       // Fetch book details
@@ -52,16 +64,21 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
 
       // Check if user has this book issued
       if (user) {
-        const { data: transactionData, error: transactionError } = await supabase
-          .from("book_transactions")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("book_id", bookId)
-          .eq("action", "issue")
-          .order("transaction_date", { ascending: false })
-          .limit(1);
+        const { data: transactionData, error: transactionError } =
+          await supabase
+            .from("book_transactions")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("book_id", bookId)
+            .eq("action", "issue")
+            .order("transaction_date", { ascending: false })
+            .limit(1);
 
-        if (!transactionError && transactionData && transactionData.length > 0) {
+        if (
+          !transactionError &&
+          transactionData &&
+          transactionData.length > 0
+        ) {
           // Check if book has been returned
           const { data: returnData } = await supabase
             .from("book_transactions")
@@ -173,7 +190,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
 
       toast.success("Book renewed successfully!");
       // Update the due date in userTransaction
-      setUserTransaction(prev => ({
+      setUserTransaction((prev) => ({
         ...prev,
         due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // Extend by 14 days
       }));
@@ -321,7 +338,11 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                             className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                           >
                             <BookOpen className="w-4 h-4" />
-                            {actionLoading ? "Issuing..." : availability ? "Issue Book" : "Not Available"}
+                            {actionLoading
+                              ? "Issuing..."
+                              : availability
+                              ? "Issue Book"
+                              : "Not Available"}
                           </button>
                         )}
                       </div>
@@ -329,7 +350,9 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                         <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                           <div className="flex items-center gap-2 text-sm text-blue-700">
                             <Clock className="w-4 h-4" />
-                            <span>Due: {formatDate(userTransaction.due_date)}</span>
+                            <span>
+                              Due: {formatDate(userTransaction.due_date)}
+                            </span>
                           </div>
                         </div>
                       )}
