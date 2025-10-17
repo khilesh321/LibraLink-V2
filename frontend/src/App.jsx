@@ -18,6 +18,7 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Register from "./Auth/Register.jsx";
 import Recommendations from "./pages/Recommendations.jsx";
+import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
 import Footer from "./components/Footer.jsx";
 import { ReactLenis } from "lenis/react";
 import { ToastContainer } from "react-toastify";
@@ -71,6 +72,7 @@ export default function App() {
           <Route path="/resources/edit/:id" element={<EditResource />} />
           <Route path="/admin/roles" element={<RoleManager />} />
           <Route path="/admin/transactions" element={<AdminTransactions />} />
+          <Route path="/admin/analytics" element={<AnalyticsDashboard />} />
           <Route path="/books" element={<Books />} />
           <Route path="/books/add" element={<AddBook />} />
           <Route path="/books/edit/:id" element={<EditBook />} />

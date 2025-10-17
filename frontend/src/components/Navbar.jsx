@@ -134,7 +134,10 @@ export default function Navbar() {
       icon: Settings,
       dropdown: [
         ...(role === "admin"
-          ? [{ name: "User Roles", path: "/admin/roles", icon: Users }]
+          ? [
+              { name: "User Roles", path: "/admin/roles", icon: Users },
+              { name: "Analytics Dashboard", path: "/admin/analytics", icon: BarChart3 },
+            ]
           : []),
       ],
       show: user && role === "admin",
