@@ -33,7 +33,7 @@ export default function Register() {
         email: email.trim(),
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${import.meta.env.VITE_FRONTEND_URL || window.location.origin}`,
         },
       });
 
