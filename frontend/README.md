@@ -11,6 +11,7 @@ A modern library management system built with React, Vite, Supabase, and integra
 - **User Management**: Role-based access control (Admin, Librarian, User)
 - **PDF Resources**: Upload and manage PDF documents
 - **Transaction Management**: Issue, return, and renew books with QR codes
+- **Rating System**: Users can rate books out of 10 when returning them
 - **Analytics**: Comprehensive admin dashboard with reports
 
 ## Tech Stack
@@ -38,34 +39,40 @@ VITE_GEMINI_API_KEY=your_google_gemini_api_key
 3. Create a new API key
 4. Copy the API key and add it to your `.env` file
 
-## Installation
+## Database Setup
 
-1. Clone the repository
-2. Navigate to the frontend directory
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-4. Set up environment variables (see above)
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
+The application uses Supabase as the backend. To set up the ratings feature, run the SQL script located at `database/create_ratings_table.sql` in your Supabase SQL editor.
+
+This will create:
+
+- `book_ratings` table for storing user ratings
+- Indexes for performance
+- Row Level Security policies
+- Helper functions for calculating average ratings
 
 ## Usage
 
 ### AI Features
 
 #### Generate Book Descriptions
+
 - Go to "Add Book" page (Admin/Librarian only)
 - Enter book title and author
 - Click "Generate with AI" button to create a description
 
 #### Book Recommendations
+
 - Navigate to "AI Recommendations" from the Books menu
 - The system analyzes your last 5 borrowed books
 - AI generates personalized recommendations from the top books in the library
 - Click "Issue Book" to borrow recommended books
+
+### Rating System
+
+- When returning a book, you'll be prompted to rate it out of 10
+- Ratings include an optional comment
+- View average ratings and individual reviews in book details
+- Ratings help improve book recommendations for all users
 
 ## Scripts
 

@@ -1,235 +1,331 @@
-import { useState, useEffect } from 'react'
-import { supabase } from './supabaseClient'
-import useUserRole from './useUserRole'
-import { toast } from 'react-toastify'
-import ReactMarkdown from 'react-markdown'
-import BookDetailsModal from './components/BookDetailsModal'
+import { useState, useEffect } from "react";
+import { supabase } from "./supabaseClient";
+import useUserRole from "./useUserRole";
+import { toast } from "react-toastify";
+import ReactMarkdown from "react-markdown";
+import BookDetailsModal from "./components/BookDetailsModal";
+import RatingModal from "./components/RatingModal";
 
 export default function Books() {
-  const { role, loading: roleLoading } = useUserRole()
-  const [books, setBooks] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [userTransactions, setUserTransactions] = useState([])
-  const [actionLoading, setActionLoading] = useState(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedBookId, setSelectedBookId] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { role, loading: roleLoading } = useUserRole();
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userTransactions, setUserTransactions] = useState([]);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedBookId, setSelectedBookId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [ratingBookId, setRatingBookId] = useState(null);
+  const [ratingBookTitle, setRatingBookTitle] = useState("");
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchBooks()
+    fetchBooks();
     if (!roleLoading) {
-      fetchUserTransactions()
+      fetchUserTransactions();
     }
-  }, [roleLoading])
+  }, [roleLoading]);
 
   const fetchBooks = async () => {
     try {
       const { data, error } = await supabase
-        .from('books')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("books")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (error) throw error
+      if (error) throw error;
 
-      // For each book, check if it's available using the database function
-      const booksWithAvailability = await Promise.all(
+      // For each book, check if it's available and get ratings
+      const booksWithAvailabilityAndRatings = await Promise.all(
         (data || []).map(async (book) => {
           try {
-            const { data: available, error: availError } = await supabase.rpc('is_book_available', {
-              book_uuid: book.id
-            })
+            // Check availability
+            const { data: available, error: availError } = await supabase.rpc(
+              "is_book_available",
+              {
+                book_uuid: book.id,
+              }
+            );
+
+            // Get average rating and rating count
+            const { data: ratings, error: ratingsError } = await supabase
+              .from("book_ratings")
+              .select("rating")
+              .eq("book_id", book.id);
+
+            let averageRating = 0;
+            let ratingCount = 0;
+
+            if (!ratingsError && ratings) {
+              ratingCount = ratings.length;
+              if (ratingCount > 0) {
+                averageRating =
+                  ratings.reduce((sum, r) => sum + r.rating, 0) / ratingCount;
+              }
+            }
 
             return {
               ...book,
-              available: availError ? true : available // fallback to true if error
-            }
+              available: availError ? true : available, // fallback to true if error
+              averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+              ratingCount,
+            };
           } catch (err) {
-            console.error('Error checking availability for book:', book.id, err)
+            console.error("Error fetching data for book:", book.id, err);
             return {
               ...book,
-              available: true // fallback to true if error
-            }
+              available: true, // fallback to true if error
+              averageRating: 0,
+              ratingCount: 0,
+            };
           }
         })
-      )
+      );
 
-      setBooks(booksWithAvailability)
+      setBooks(booksWithAvailabilityAndRatings);
     } catch (error) {
-      console.error('Error fetching books:', error)
+      console.error("Error fetching books:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchUserTransactions = async () => {
-    if (!role) return
+    if (!role) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
       const { data, error } = await supabase
-        .from('book_transactions')
-        .select('book_id, action, due_date, transaction_date')
-        .eq('user_id', user.id)
-        .order('transaction_date', { ascending: false })
+        .from("book_transactions")
+        .select("book_id, action, due_date, transaction_date")
+        .eq("user_id", user.id)
+        .order("transaction_date", { ascending: false });
 
-      if (error) throw error
-      setUserTransactions(data || [])
+      if (error) throw error;
+      setUserTransactions(data || []);
     } catch (error) {
-      console.error('Error fetching user transactions:', error)
+      console.error("Error fetching user transactions:", error);
     }
-  }
+  };
 
   const getBookStatus = (bookId) => {
-    const transactions = userTransactions.filter(t => t.book_id === bookId)
-    if (transactions.length === 0) return null
+    const transactions = userTransactions.filter((t) => t.book_id === bookId);
+    if (transactions.length === 0) return null;
 
     // Find the latest transaction
-    const latestTransaction = transactions[0]
-    const hasReturn = transactions.some(t => t.action === 'return' && t.transaction_date > latestTransaction.transaction_date)
+    const latestTransaction = transactions[0];
+    const hasReturn = transactions.some(
+      (t) =>
+        t.action === "return" &&
+        t.transaction_date > latestTransaction.transaction_date
+    );
 
-    if (!hasReturn && (latestTransaction.action === 'issue' || latestTransaction.action === 'renew')) {
+    if (
+      !hasReturn &&
+      (latestTransaction.action === "issue" ||
+        latestTransaction.action === "renew")
+    ) {
       return {
-        status: 'issued',
-        dueDate: latestTransaction.due_date
-      }
+        status: "issued",
+        dueDate: latestTransaction.due_date,
+      };
     }
 
-    return null
-  }
+    return null;
+  };
 
   const handleIssueBook = async (bookId) => {
-    setActionLoading(bookId)
+    setActionLoading(bookId);
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
 
-      const { data, error } = await supabase.rpc('issue_book', {
+      const { data, error } = await supabase.rpc("issue_book", {
         book_uuid: bookId,
-        user_uuid: user.id
-      })
+        user_uuid: user.id,
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
       if (data) {
-        toast.success('Book issued successfully!')
-        fetchBooks()
-        fetchUserTransactions()
+        toast.success("Book issued successfully!");
+        fetchBooks();
+        fetchUserTransactions();
       } else {
-        toast.warning('Book is not available')
+        toast.warning("Book is not available");
       }
     } catch (error) {
-      console.error('Error issuing book:', error)
-      toast.error('Failed to issue book: ' + error.message)
+      console.error("Error issuing book:", error);
+      toast.error("Failed to issue book: " + error.message);
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const handleReturnBook = async (bookId) => {
-    setActionLoading(bookId)
+    // Find the book title for the rating modal
+    const book = books.find((b) => b.id === bookId);
+    if (book) {
+      setRatingBookId(bookId);
+      setRatingBookTitle(book.title);
+      setIsRatingModalOpen(true);
+    }
+  };
+
+  const handleRatingSubmitted = async () => {
+    if (!ratingBookId) return;
+
+    setActionLoading(ratingBookId);
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
 
-      const { data, error } = await supabase.rpc('return_book', {
-        book_uuid: bookId,
-        user_uuid: user.id
-      })
+      const { data, error } = await supabase.rpc("return_book", {
+        book_uuid: ratingBookId,
+        user_uuid: user.id,
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
       if (data) {
-        toast.success('Book returned successfully!')
-        fetchBooks()
-        fetchUserTransactions()
+        toast.success("Book returned successfully!");
+        fetchBooks();
+        fetchUserTransactions();
       } else {
-        toast.error('Failed to return book')
+        toast.error("Failed to return book");
       }
     } catch (error) {
-      console.error('Error returning book:', error)
-      toast.error('Failed to return book: ' + error.message)
+      console.error("Error returning book:", error);
+      toast.error("Failed to return book: " + error.message);
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
+      setRatingBookId(null);
+      setRatingBookTitle("");
+      setIsRatingModalOpen(false);
     }
-  }
+  };
+
+  const handleSkipRating = async () => {
+    if (!ratingBookId) return;
+
+    setActionLoading(ratingBookId);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase.rpc("return_book", {
+        book_uuid: ratingBookId,
+        user_uuid: user.id,
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        toast.success("Book returned successfully!");
+        fetchBooks();
+        fetchUserTransactions();
+      } else {
+        toast.error("Failed to return book");
+      }
+    } catch (error) {
+      console.error("Error returning book:", error);
+      toast.error("Failed to return book: " + error.message);
+    } finally {
+      setActionLoading(null);
+      setRatingBookId(null);
+      setRatingBookTitle("");
+      setIsRatingModalOpen(false);
+    }
+  };
 
   const handleRenewBook = async (bookId) => {
-    setActionLoading(bookId)
+    setActionLoading(bookId);
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
 
-      const { data, error } = await supabase.rpc('renew_book', {
+      const { data, error } = await supabase.rpc("renew_book", {
         book_uuid: bookId,
-        user_uuid: user.id
-      })
+        user_uuid: user.id,
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
       if (data) {
-        toast.success('Book renewed successfully!')
-        fetchUserTransactions()
+        toast.success("Book renewed successfully!");
+        fetchUserTransactions();
       } else {
-        toast.warning('Failed to renew book - it may not be issued to you')
+        toast.warning("Failed to renew book - it may not be issued to you");
       }
     } catch (error) {
-      console.error('Error renewing book:', error)
-      toast.error('Failed to renew book: ' + error.message)
+      console.error("Error renewing book:", error);
+      toast.error("Failed to renew book: " + error.message);
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const handleEditBook = (bookId) => {
-    window.location.href = `/books/edit/${bookId}`
-  }
+    window.location.href = `/books/edit/${bookId}`;
+  };
 
   const handleDeleteBook = async (bookId) => {
-    if (!confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
-      return
+    if (
+      !confirm(
+        "Are you sure you want to delete this book? This action cannot be undone."
+      )
+    ) {
+      return;
     }
 
-    setActionLoading(bookId)
+    setActionLoading(bookId);
     try {
-      const { error } = await supabase
-        .from('books')
-        .delete()
-        .eq('id', bookId)
+      const { error } = await supabase.from("books").delete().eq("id", bookId);
 
-      if (error) throw error
+      if (error) throw error;
 
-      toast.success('Book deleted successfully!')
-      fetchBooks()
+      toast.success("Book deleted successfully!");
+      fetchBooks();
     } catch (error) {
-      console.error('Error deleting book:', error)
-      toast.error('Failed to delete book: ' + error.message)
+      console.error("Error deleting book:", error);
+      toast.error("Failed to delete book: " + error.message);
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const handleViewDetails = (bookId) => {
-    setSelectedBookId(bookId)
-    setIsModalOpen(true)
-  }
+    setSelectedBookId(bookId);
+    setIsModalOpen(true);
+  };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setSelectedBookId(null)
-  }
+    setIsModalOpen(false);
+    setSelectedBookId(null);
+  };
 
   // Filter books based on search query
   const filteredBooks = books.filter((book) => {
-    const query = searchQuery.toLowerCase()
+    const query = searchQuery.toLowerCase();
     return (
       book.title?.toLowerCase().includes(query) ||
       book.author?.toLowerCase().includes(query) ||
       book.description?.toLowerCase().includes(query) ||
       book.genre?.toLowerCase().includes(query)
-    )
-  })
+    );
+  });
 
   if (loading || roleLoading) {
     return (
@@ -239,7 +335,7 @@ export default function Books() {
           <p className="mt-4 text-gray-600">Loading books...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -247,9 +343,9 @@ export default function Books() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Library Books</h1>
-          {(role === 'admin' || role === 'librarian') && (
+          {(role === "admin" || role === "librarian") && (
             <button
-              onClick={() => window.location.href = '/books/add'}
+              onClick={() => (window.location.href = "/books/add")}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
             >
               Add New Book
@@ -262,8 +358,18 @@ export default function Books() {
           <div className="max-w-md mx-auto">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
               <input
@@ -275,11 +381,21 @@ export default function Books() {
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => setSearchQuery("")}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               )}
@@ -288,7 +404,8 @@ export default function Books() {
           {searchQuery && (
             <div className="text-center mt-2">
               <span className="text-sm text-gray-600">
-                Found {filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''} matching "{searchQuery}"
+                Found {filteredBooks.length} book
+                {filteredBooks.length !== 1 ? "s" : ""} matching "{searchQuery}"
               </span>
             </div>
           )}
@@ -299,17 +416,16 @@ export default function Books() {
             <div className="col-span-full text-center py-12">
               <div className="text-6xl mb-4">📚</div>
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                {searchQuery ? 'No books found' : 'No books available'}
+                {searchQuery ? "No books found" : "No books available"}
               </h2>
               <p className="text-gray-600">
-                {searchQuery 
+                {searchQuery
                   ? `No books match your search for "${searchQuery}". Try different keywords.`
-                  : 'Books will appear here once they are added to the library.'
-                }
+                  : "Books will appear here once they are added to the library."}
               </p>
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => setSearchQuery("")}
                   className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
                 >
                   Clear Search
@@ -318,119 +434,161 @@ export default function Books() {
             </div>
           ) : (
             filteredBooks.map((book) => {
-            const bookStatus = getBookStatus(book.id)
-            const isAvailable = book.available
+              const bookStatus = getBookStatus(book.id);
+              const isAvailable = book.available;
 
-            return (
-              <div key={book.id} className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[72.5vh] duration-300">
-                <div className="bg-gray-200">
-                  {book.cover_image_url ? (
-                    <img
-                      src={book.cover_image_url}
-                      alt={book.title}
-                      className="w-full object-cover md:absolute md:group-hover:scale-x-0 mx-auto transition duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
-                      <span className="text-gray-500 text-sm">No Cover</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className={`p-4 ${book.cover_image_url && 'md:mt-5'}`}>
-                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{book.title}</h3>
-
-                  {book.author && (
-                    <p className="text-sm text-gray-600 mb-1">by {book.author}</p>
-                  )}
-
-                  {book.description && (
-                    <div className="text-sm text-gray-700 mb-3 line-clamp-3 prose prose-sm max-w-none">
-                      <ReactMarkdown>{book.description}</ReactMarkdown>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {isAvailable ? 'Available' : 'Issued'}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {book.count || 1} {book.count === 1 ? 'copy' : 'copies'}
-                    </span>
-                  </div>
-
-                  {bookStatus && (
-                    <div className="mb-3 p-2 bg-blue-50 rounded text-sm">
-                      <p className="text-blue-800">Issued to you</p>
-                      {bookStatus.dueDate && (
-                        <p className="text-blue-600">
-                          Due: {new Date(bookStatus.dueDate).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex space-x-2">
-                    {bookStatus ? (
-                      <>
-                        <button
-                          onClick={() => handleReturnBook(book.id)}
-                          disabled={actionLoading === book.id}
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-3 rounded transition duration-300 disabled:opacity-50"
-                        >
-                          {actionLoading === book.id ? 'Returning...' : 'Return'}
-                        </button>
-                        <button
-                          onClick={() => handleRenewBook(book.id)}
-                          disabled={actionLoading === book.id}
-                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded transition duration-300 disabled:opacity-50"
-                        >
-                          {actionLoading === book.id ? 'Renewing...' : 'Renew'}
-                        </button>
-                      </>
+              return (
+                <div
+                  key={book.id}
+                  className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[72.5vh] duration-300"
+                >
+                  <div className="bg-gray-200">
+                    {book.cover_image_url ? (
+                      <img
+                        src={book.cover_image_url}
+                        alt={book.title}
+                        className="w-full object-cover md:absolute md:group-hover:scale-x-0 mx-auto transition duration-300"
+                      />
                     ) : (
-                      <button
-                        onClick={() => handleIssueBook(book.id)}
-                        disabled={actionLoading === book.id || !isAvailable}
-                        className="w-full bg-blue-600 disabled:bg-blue-400 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition duration-300 disabled:cursor-not-allowed"
-                      >
-                        {actionLoading === book.id ? 'Issuing...' : isAvailable ? 'Issue Book' : 'Unavailable'}
-                      </button>
+                      <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
+                        <span className="text-gray-500 text-sm">No Cover</span>
+                      </div>
                     )}
                   </div>
 
-                  {/* View Details Button */}
-                  <button
-                    onClick={() => handleViewDetails(book.id)}
-                    className="w-full mt-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded transition duration-300"
-                  >
-                    View Details
-                  </button>
+                  <div className={`p-4 ${book.cover_image_url && "md:mt-5"}`}>
+                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                      {book.title}
+                    </h3>
 
-                  {/* Admin/Librarian Actions */}
-                  {(role === 'admin' || role === 'librarian') && (
-                    <div className="flex space-x-2 mt-2 pt-2 border-t border-gray-200">
-                      <button
-                        onClick={() => handleEditBook(book.id)}
-                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium py-2 px-3 rounded transition duration-300"
+                    {book.author && (
+                      <p className="text-sm text-gray-600 mb-1">
+                        by {book.author}
+                      </p>
+                    )}
+
+                    {book.description && (
+                      <div className="text-sm text-gray-700 mb-3 line-clamp-3 prose prose-sm max-w-none">
+                        <ReactMarkdown>{book.description}</ReactMarkdown>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between mb-3">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          isAvailable
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
                       >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteBook(book.id)}
-                        disabled={actionLoading === book.id}
-                        className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-3 rounded transition duration-300 disabled:opacity-50"
-                      >
-                        {actionLoading === book.id ? 'Deleting...' : 'Delete'}
-                      </button>
+                        {isAvailable ? "Available" : "Issued"}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {book.count || 1} {book.count === 1 ? "copy" : "copies"}
+                      </span>
                     </div>
-                  )}
+
+                    {/* Rating Display */}
+                    {book.ratingCount > 0 && (
+                      <div className="flex items-center mb-3">
+                        <div className="flex items-center">
+                          <svg
+                            className="w-4 h-4 text-yellow-400 fill-current"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                          </svg>
+                          <span className="text-sm font-medium text-gray-900 ml-1">
+                            {book.averageRating}
+                          </span>
+                          <span className="text-sm text-gray-600 ml-1">
+                            ({book.ratingCount}{" "}
+                            {book.ratingCount === 1 ? "rating" : "ratings"})
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {bookStatus && (
+                      <div className="mb-3 p-2 bg-blue-50 rounded text-sm">
+                        <p className="text-blue-800">Issued to you</p>
+                        {bookStatus.dueDate && (
+                          <p className="text-blue-600">
+                            Due:{" "}
+                            {new Date(bookStatus.dueDate).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex space-x-2">
+                      {bookStatus ? (
+                        <>
+                          <button
+                            onClick={() => handleReturnBook(book.id)}
+                            disabled={actionLoading === book.id}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-3 rounded transition duration-300 disabled:opacity-50"
+                          >
+                            {actionLoading === book.id
+                              ? "Returning..."
+                              : "Return"}
+                          </button>
+                          <button
+                            onClick={() => handleRenewBook(book.id)}
+                            disabled={actionLoading === book.id}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded transition duration-300 disabled:opacity-50"
+                          >
+                            {actionLoading === book.id
+                              ? "Renewing..."
+                              : "Renew"}
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleIssueBook(book.id)}
+                          disabled={actionLoading === book.id || !isAvailable}
+                          className="w-full bg-blue-600 disabled:bg-blue-400 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition duration-300 disabled:cursor-not-allowed"
+                        >
+                          {actionLoading === book.id
+                            ? "Issuing..."
+                            : isAvailable
+                            ? "Issue Book"
+                            : "Unavailable"}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* View Details Button */}
+                    <button
+                      onClick={() => handleViewDetails(book.id)}
+                      className="w-full mt-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded transition duration-300"
+                    >
+                      View Details
+                    </button>
+
+                    {/* Admin/Librarian Actions */}
+                    {(role === "admin" || role === "librarian") && (
+                      <div className="flex space-x-2 mt-2 pt-2 border-t border-gray-200">
+                        <button
+                          onClick={() => handleEditBook(book.id)}
+                          className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium py-2 px-3 rounded transition duration-300"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBook(book.id)}
+                          disabled={actionLoading === book.id}
+                          className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-3 rounded transition duration-300 disabled:opacity-50"
+                        >
+                          {actionLoading === book.id ? "Deleting..." : "Delete"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          }))}
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -440,6 +598,15 @@ export default function Books() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />
+
+      {/* Rating Modal */}
+      <RatingModal
+        bookId={ratingBookId}
+        bookTitle={ratingBookTitle}
+        isOpen={isRatingModalOpen}
+        onClose={() => setIsRatingModalOpen(false)}
+        onRatingSubmitted={handleRatingSubmitted}
+      />
     </div>
-  )
+  );
 }

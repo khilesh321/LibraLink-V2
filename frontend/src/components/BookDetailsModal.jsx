@@ -1,58 +1,90 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../supabaseClient'
-import { X, BookOpen, User, Calendar, Hash, Star } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
+import { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
+import { X, BookOpen, User, Calendar, Hash, Star } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 export default function BookDetailsModal({ bookId, isOpen, onClose }) {
-  const [book, setBook] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [availability, setAvailability] = useState(null)
+  const [book, setBook] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [availability, setAvailability] = useState(null);
+  const [ratings, setRatings] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
 
   useEffect(() => {
     if (isOpen && bookId) {
-      fetchBookDetails()
+      fetchBookDetails();
     }
-  }, [isOpen, bookId])
+  }, [isOpen, bookId]);
 
+  // Add debugging logs to inspect data fetching and rendering
   const fetchBookDetails = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       // Fetch book details
       const { data: bookData, error: bookError } = await supabase
-        .from('books')
-        .select('*')
-        .eq('id', bookId)
-        .single()
+        .from("books")
+        .select("*")
+        .eq("id", bookId)
+        .single();
 
-      if (bookError) throw bookError
+      if (bookError) throw bookError;
 
-      setBook(bookData)
+      setBook(bookData);
 
       // Check availability
-      const { data: available, error: availError } = await supabase.rpc('is_book_available', {
-        book_uuid: bookId
-      })
+      const { data: available, error: availError } = await supabase.rpc(
+        "is_book_available",
+        {
+          book_uuid: bookId,
+        }
+      );
+      setAvailability(availError ? true : available);
 
-      setAvailability(availError ? true : available)
+      // Fetch ratings
+      const { data: ratingsData, error: ratingsError } = await supabase
+        .from("book_ratings")
+        .select(
+          `
+          rating,
+          comment,
+          created_at,
+          user_id
+        `
+        )
+        .eq("book_id", bookId)
+        .order("created_at", { ascending: false });
+
+      if (!ratingsError && ratingsData) {
+        setRatings(ratingsData);
+        if (ratingsData.length > 0) {
+          const avg =
+            ratingsData.reduce((sum, r) => sum + r.rating, 0) /
+            ratingsData.length;
+          setAverageRating(Math.round(avg * 10) / 10);
+        }
+      }
     } catch (error) {
-      console.error('Error fetching book details:', error)
+      console.error("Error fetching book details:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
-    <div data-lenis-prevent className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div
+      data-lenis-prevent
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    >
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -96,13 +128,22 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                   {/* Availability Status */}
                   <div className="mt-4 p-3 rounded-lg border">
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${availability ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      <span className={`font-medium ${availability ? 'text-green-700' : 'text-red-700'}`}>
-                        {availability ? 'Available' : 'Not Available'}
+                      <div
+                        className={`w-3 h-3 rounded-full ${
+                          availability ? "bg-green-500" : "bg-red-500"
+                        }`}
+                      ></div>
+                      <span
+                        className={`font-medium ${
+                          availability ? "text-green-700" : "text-red-700"
+                        }`}
+                      >
+                        {availability ? "Available" : "Not Available"}
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      {book.count} {book.count === 1 ? 'copy' : 'copies'} available
+                      {book.count} {book.count === 1 ? "copy" : "copies"}{" "}
+                      available
                     </p>
                   </div>
                 </div>
@@ -111,19 +152,73 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                 <div className="lg:col-span-2 space-y-6">
                   {/* Basic Info */}
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{book.title}</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {book.title}
+                    </h3>
                     <div className="flex items-center gap-2 text-gray-600 mb-4">
                       <User className="w-4 h-4" />
-                      <span>by {book.author || 'Unknown Author'}</span>
+                      <span>by {book.author || "Unknown Author"}</span>
                     </div>
                   </div>
 
                   {/* Description */}
                   {book.description && (
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Description</h4>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                        Description
+                      </h4>
                       <div className="prose prose-sm max-w-none text-gray-700">
                         <ReactMarkdown>{book.description}</ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ratings */}
+                  {ratings.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                        Ratings & Reviews
+                      </h4>
+                      <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div className="flex items-center mb-2">
+                          <Star className="w-5 h-5 text-yellow-400 fill-current mr-2" />
+                          <span className="text-xl font-bold text-gray-900">
+                            {averageRating}
+                          </span>
+                          <span className="text-gray-600 ml-2">out of 10</span>
+                          <span className="text-gray-500 ml-2">
+                            ({ratings.length}{" "}
+                            {ratings.length === 1 ? "rating" : "ratings"})
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 max-h-60 overflow-y-auto">
+                        {ratings.map((rating, index) => (
+                          <div
+                            key={index}
+                            className="bg-white border rounded-lg p-3"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center">
+                                <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                                <span className="font-medium text-gray-900">
+                                  {rating.rating}/10
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {new Date(
+                                  rating.created_at
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                            {rating.comment && (
+                              <p className="text-sm text-gray-700">
+                                {rating.comment}
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -134,13 +229,17 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                       <div className="flex items-center gap-2">
                         <Hash className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-600">Book ID:</span>
-                        <span className="text-sm font-mono text-gray-900">{book.id.slice(0, 8)}...</span>
+                        <span className="text-sm font-mono text-gray-900">
+                          {book.id.slice(0, 8)}...
+                        </span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-600">Added:</span>
-                        <span className="text-sm text-gray-900">{formatDate(book.created_at)}</span>
+                        <span className="text-sm text-gray-900">
+                          {formatDate(book.created_at)}
+                        </span>
                       </div>
                     </div>
 
@@ -148,16 +247,23 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-600">Copies:</span>
-                        <span className="text-sm text-gray-900">{book.count}</span>
+                        <span className="text-sm text-gray-900">
+                          {book.count}
+                        </span>
                       </div>
 
-                      {book.updated_at && book.updated_at !== book.created_at && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm text-gray-600">Updated:</span>
-                          <span className="text-sm text-gray-900">{formatDate(book.updated_at)}</span>
-                        </div>
-                      )}
+                      {book.updated_at &&
+                        book.updated_at !== book.created_at && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">
+                              Updated:
+                            </span>
+                            <span className="text-sm text-gray-900">
+                              {formatDate(book.updated_at)}
+                            </span>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -171,5 +277,5 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
         )}
       </div>
     </div>
-  )
+  );
 }

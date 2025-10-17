@@ -1,50 +1,62 @@
-import { Link } from 'react-router-dom'
-import { useMemo, useState, useEffect } from 'react'
-import { supabase } from './supabaseClient'
-import useUserRole from './useUserRole'
-import { BookOpen, QrCode, ClipboardList, ShieldCheck, Search, LogIn, ArrowRight, AlarmCheck, Loader2 } from 'lucide-react'
-import Spline from '@splinetool/react-spline';
-import {AnimatePresence, motion} from 'framer-motion'
-import AnimatedShowcase from './components/AnimatedShowcase';
+import { Link } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
+import { supabase } from "./supabaseClient";
+import useUserRole from "./useUserRole";
+import {
+  BookOpen,
+  QrCode,
+  ClipboardList,
+  ShieldCheck,
+  Search,
+  LogIn,
+  ArrowRight,
+  AlarmCheck,
+  Loader2,
+} from "lucide-react";
+import Spline from "@splinetool/react-spline";
+import { AnimatePresence, motion } from "framer-motion";
+import AnimatedShowcase from "./components/AnimatedShowcase";
 
-export default function Home(){
-  const { role, loading: roleLoading } = useUserRole()
-  const [user, setUser] = useState(null)
-  const [splineLoading, setSplineLoading] = useState(true)
-  const [splineError, setSplineError] = useState(false)
+export default function Home() {
+  const { role, loading: roleLoading } = useUserRole();
+  const [user, setUser] = useState(null);
+  const [splineLoading, setSplineLoading] = useState(true);
+  const [splineError, setSplineError] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-    }
-    getUser()
-  }, [])
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
 
-  const isLibrarian = role === 'librarian' || role === 'admin'
+  const isLibrarian = role === "librarian" || role === "admin";
 
   const features = [
     {
       icon: <BookOpen className="w-6 h-6 text-white" />,
-      title: 'Digital Library',
-      desc: 'Access thousands of books with advanced search, filtering, and instant availability checking.'
+      title: "Digital Library",
+      desc: "Access thousands of books with advanced search, filtering, and instant availability checking.",
     },
     {
       icon: <QrCode className="w-6 h-6 text-white" />,
-      title: 'QR Code Management',
-      desc: 'Seamlessly issue and return books using QR codes from any device, anywhere, anytime.'
+      title: "QR Code Management",
+      desc: "Seamlessly issue and return books using QR codes from any device, anywhere, anytime.",
     },
     {
       icon: <ClipboardList className="w-6 h-6 text-white" />,
-      title: 'PDF Resources',
-      desc: 'Upload and manage PDF documents with cover images and interactive FlipHTML5 reading experience.'
+      title: "PDF Resources",
+      desc: "Upload and manage PDF documents with cover images and interactive FlipHTML5 reading experience.",
     },
     {
       icon: <ShieldCheck className="w-6 h-6 text-white" />,
-      title: 'Smart Analytics',
-      desc: 'Comprehensive admin dashboard with user management, transaction tracking, and detailed reports.'
+      title: "Smart Analytics",
+      desc: "Comprehensive admin dashboard with user management, transaction tracking, and detailed reports.",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -91,7 +103,7 @@ export default function Home(){
                       className="inline-block"
                     >
                       Your
-                    </motion.span>{' '}
+                    </motion.span>{" "}
                     <motion.span
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -99,7 +111,7 @@ export default function Home(){
                       className="inline-block"
                     >
                       Digital
-                    </motion.span>{' '}
+                    </motion.span>{" "}
                     <motion.span
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -127,8 +139,9 @@ export default function Home(){
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 1.0 }}
                 >
-                  Experience the future of library management with QR-based automation,
-                  instant book discovery, and seamless borrowing – all in one powerful platform.
+                  Experience the future of library management with QR-based
+                  automation, instant book discovery, and seamless borrowing –
+                  all in one powerful platform.
                 </motion.p>
               </div>
 
@@ -335,58 +348,65 @@ export default function Home(){
 
             {/* Right Side - 3D Model */}
             <div className="hidden lg:flex absolute left-100 -top-5 items-center justify-center bg-greenb-500 w-250">
-                <div className="w-full h-140 flex items-center justify-center relative">
-                  {splineLoading && !splineError && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute top-50 left-120 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl"
-                    >
-                      <div className="text-center space-y-4">
-                        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto" />
-                        <p className="text-indigo-700 font-medium">Loading 3D Experience...</p>
-                      </div>
-                    </motion.div>
-                  )}
+              <div className="w-full h-140 flex items-center justify-center relative">
+                {splineLoading && !splineError && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute top-50 left-120 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl"
+                  >
+                    <div className="text-center space-y-4">
+                      <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto" />
+                      <p className="text-indigo-700 font-medium">
+                        Loading 3D Experience...
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
 
-                  {splineError ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl"
-                    >
-                      <div className="text-center space-y-4 p-6">
-                        <div className="w-16 h-16 mx-auto rounded-full bg-gray-200 flex items-center justify-center">
-                          <BookOpen className="w-8 h-8 text-gray-500" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">3D Model Unavailable</h3>
-                          <p className="text-gray-600 text-sm">The interactive 3D experience couldn't load, but you can still explore our library!</p>
-                        </div>
-                        <Link
-                          to="/books"
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-                        >
-                          <Search className="w-4 h-4" />
-                          Browse Books
-                        </Link>
+                {splineError ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl"
+                  >
+                    <div className="text-center space-y-4 p-6">
+                      <div className="w-16 h-16 mx-auto rounded-full bg-gray-200 flex items-center justify-center">
+                        <BookOpen className="w-8 h-8 text-gray-500" />
                       </div>
-                    </motion.div>
-                  ) : (
-                    <Spline
-                      className=''
-                      scene="https://prod.spline.design/e8IAFDUwjeTnEZl4/scene.splinecode"
-                      onLoad={() => setSplineLoading(false)}
-                      onError={() => {
-                        setSplineLoading(false)
-                        setSplineError(true)
-                      }}
-                    />
-                  )}
-                </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          3D Model Unavailable
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          The interactive 3D experience couldn't load, but you
+                          can still explore our library!
+                        </p>
+                      </div>
+                      <Link
+                        to="/books"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                      >
+                        <Search className="w-4 h-4" />
+                        Browse Books
+                      </Link>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <Spline
+                    className=""
+                    scene="https://prod.spline.design/e8IAFDUwjeTnEZl4/scene.splinecode"
+                    onLoad={() => setSplineLoading(false)}
+                    onError={() => {
+                      setSplineLoading(false);
+                      setSplineError(true);
+                    }}
+                  />
+                )}
+              </div>
 
-                {/* floating balls
+              {/* floating balls
                 <div className="absolute -top-4 left-1/4 w-6 h-6 bg-pink-500 rounded-full opacity-25 animate-bounce delay-300"></div>
                 <div className="absolute left-30 bottom-30 w-[40px] h-[40px] rounded-full opacity-30 bg-red-400 animate-pulse"></div> */}
 
@@ -395,7 +415,9 @@ export default function Home(){
               <div className="absolute bottom-4 right-5 w-35 h-11 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg pointer-events-none">
                 <div className="flex items-center justify-center gap-2 px-3">
                   <AlarmCheck className="w-5 h-5 text-white" />
-                  <span className="text-white text-sm font-semibold">24/7 Access</span>
+                  <span className="text-white text-sm font-semibold">
+                    24/7 Access
+                  </span>
                 </div>
               </div>
             </div>
@@ -411,36 +433,39 @@ export default function Home(){
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-center mb-16">
+            className="text-center mb-16"
+          >
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               Powerful Features for Modern Libraries
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Streamline your library operations with cutting-edge technology and intuitive design
+              Streamline your library operations with cutting-edge technology
+              and intuitive design
             </p>
           </motion.div>
 
           {/* Feature Cards */}
-          <div
-
-            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {features.map((f, i) => (
               <AnimatePresence key={i}>
-              <motion.div
-                initial={{ y: 20 }}
-                whileInView={{ y: 0 }}
-                transition={{ duration: .8, delay: i * 0.2 }}
-                className="group rounded-2xl bg-white shadow-lg ring-1 ring-gray-100 p-6 transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:ring-indigo-200">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    {f.icon}
+                <motion.div
+                  initial={{ y: 20 }}
+                  whileInView={{ y: 0 }}
+                  transition={{ duration: 0.8, delay: i * 0.2 }}
+                  className="group rounded-2xl bg-white shadow-lg ring-1 ring-gray-100 p-6 transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:ring-indigo-200"
+                >
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      {f.icon}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        {f.title}
+                      </h3>
+                      <p className="text-gray-600 leading-relaxed">{f.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{f.desc}</p>
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
               </AnimatePresence>
             ))}
           </div>
@@ -451,7 +476,8 @@ export default function Home(){
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-center mb-12">
+              className="text-center mb-12"
+            >
               <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
                 How LibraLink Works
               </h3>
@@ -465,80 +491,111 @@ export default function Home(){
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="text-center space-y-4">
+                className="text-center space-y-4"
+              >
                 <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center text-white text-2xl font-bold">
                   1
                 </div>
-                <h4 className="text-xl font-semibold text-gray-900">Search & Discover</h4>
-                <p className="text-gray-600">Find your desired books instantly with our smart search and filtering system</p>
+                <h4 className="text-xl font-semibold text-gray-900">
+                  Search & Discover
+                </h4>
+                <p className="text-gray-600">
+                  Find your desired books instantly with our smart search and
+                  filtering system
+                </p>
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, y:20}}
-                whileInView={{ opacity: 1, y:0 }}
-                transition={{ duration: .5 }}
-                className="text-center space-y-4">
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-center space-y-4"
+              >
                 <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center text-white text-2xl font-bold">
                   2
                 </div>
-                <h4 className="text-xl font-semibold text-gray-900">Scan QR Code</h4>
-                <p className="text-gray-600">Simply scan the book's QR code to issue or return books in seconds</p>
+                <h4 className="text-xl font-semibold text-gray-900">
+                  Scan QR Code
+                </h4>
+                <p className="text-gray-600">
+                  Simply scan the book's QR code to issue or return books in
+                  seconds
+                </p>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="text-center space-y-4">
+                className="text-center space-y-4"
+              >
                 <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center text-white text-2xl font-bold">
                   3
                 </div>
-                <h4 className="text-xl font-semibold text-gray-900">Manage & Track</h4>
-                <p className="text-gray-600">Keep track of due dates, renewals, and late fees from your dashboard</p>
+                <h4 className="text-xl font-semibold text-gray-900">
+                  Manage & Track
+                </h4>
+                <p className="text-gray-600">
+                  Keep track of due dates, renewals, and late fees from your
+                  dashboard
+                </p>
               </motion.div>
             </div>
           </div>
 
           {/* Quick Action Cards */}
           <div className="grid md:grid-cols-2 gap-6">
-            <Link to="/books" className="group rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105">
+            <Link
+              to="/books"
+              className="group rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105"
+            >
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="flex items-center justify-between">
+                className="flex items-center justify-between"
+              >
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <div className="rounded-lg bg-white/20 p-2">
                       <BookOpen className="w-6 h-6 text-white" />
                     </div>
-                    <h4 className="text-xl font-semibold">Find Your Next Read</h4>
+                    <h4 className="text-xl font-semibold">
+                      Find Your Next Read
+                    </h4>
                   </div>
                   <p className="text-blue-100">
-                    Explore our vast collection of books across all genres and subjects
+                    Explore our vast collection of books across all genres and
+                    subjects
                   </p>
                 </div>
                 <ArrowRight className="w-6 h-6 text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all" />
               </motion.div>
             </Link>
 
-            <Link to={user ? '/my-transactions' : '/login'} className="group rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105">
+            <Link
+              to={user ? "/my-transactions" : "/login"}
+              className="group rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105"
+            >
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="flex items-center justify-between">
+                className="flex items-center justify-between"
+              >
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <div className="rounded-lg bg-white/20 p-2">
                       <ClipboardList className="w-6 h-6 text-white" />
                     </div>
                     <h4 className="text-xl font-semibold">
-                      {user ? 'Manage Your Library' : 'Start Your Journey'}
+                      {user ? "Manage Your Library" : "Start Your Journey"}
                     </h4>
                   </div>
                   <p className="text-purple-100">
-                    {user ? 'View borrowed books, due dates, and renew with one click' : 'Sign up to access our digital library services'}
+                    {user
+                      ? "View borrowed books, due dates, and renew with one click"
+                      : "Sign up to access our digital library services"}
                   </p>
                 </div>
                 <ArrowRight className="w-6 h-6 text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -555,12 +612,14 @@ export default function Home(){
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl text-white p-8 sm:p-12 text-center">
+            className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl text-white p-8 sm:p-12 text-center"
+          >
             <h3 className="text-2xl sm:text-3xl font-bold mb-4">
               Ready to Transform Your Library Experience?
             </h3>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              Join thousands of users who have already discovered the future of library management
+              Join thousands of users who have already discovered the future of
+              library management
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {!user ? (
@@ -593,5 +652,5 @@ export default function Home(){
         <AnimatedShowcase />
       </section>
     </div>
-  )
+  );
 }

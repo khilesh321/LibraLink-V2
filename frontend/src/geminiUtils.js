@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY)
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 /**
  * Generate a book description using Gemini AI
@@ -14,7 +14,7 @@ export const generateBookDescription = async (title, author) => {
     const prompt = `Generate a compelling and informative book description for the following book:
 
 Title: ${title}
-Author: ${author || 'Unknown'}
+Author: ${author || "Unknown"}
 
 Please provide a description that includes:
 - A brief overview of what the book is about
@@ -22,16 +22,16 @@ Please provide a description that includes:
 - Why someone might want to read it
 - Keep it between 100-200 words
 
-Make it engaging and suitable for a library catalog. Do not use any markdown formatting like **bold** or *italic* text. Write in plain text only.`
+Make it engaging and suitable for a library catalog. Do not use any markdown formatting like **bold** or *italic* text. Write in plain text only.`;
 
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    return response.text().trim()
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text().trim();
   } catch (error) {
-    console.error('Error generating book description:', error)
-    throw new Error('Failed to generate description. Please try again.')
+    console.error("Error generating book description:", error);
+    throw new Error("Failed to generate description. Please try again.");
   }
-}
+};
 
 /**
  * Generate book recommendations based on user's borrowing history
@@ -39,15 +39,33 @@ Make it engaging and suitable for a library catalog. Do not use any markdown for
  * @param {Array} topBooks - Array of top 50 books in the library
  * @returns {Promise<Array>} Array of recommended books with reasoning
  */
-export const generateBookRecommendations = async (userBorrowedBooks, topBooks) => {
+export const generateBookRecommendations = async (
+  userBorrowedBooks,
+  topBooks
+) => {
   try {
-    const borrowedBooksText = userBorrowedBooks.map(book =>
-      `- "${book.title}" by ${book.author || 'Unknown'} (${book.description ? book.description.substring(0, 100) + '...' : 'No description'})`
-    ).join('\n')
+    const borrowedBooksText = userBorrowedBooks
+      .map(
+        (book) =>
+          `- "${book.title}" by ${book.author || "Unknown"} (${
+            book.description
+              ? book.description.substring(0, 100) + "..."
+              : "No description"
+          })`
+      )
+      .join("\n");
 
-    const topBooksText = topBooks.slice(0, 20).map(book =>
-      `- "${book.title}" by ${book.author || 'Unknown'} (${book.description ? book.description.substring(0, 100) + '...' : 'No description'})`
-    ).join('\n')
+    const topBooksText = topBooks
+      .slice(0, 20)
+      .map(
+        (book) =>
+          `- "${book.title}" by ${book.author || "Unknown"} (${
+            book.description
+              ? book.description.substring(0, 100) + "..."
+              : "No description"
+          })`
+      )
+      .join("\n");
 
     const prompt = `Based on a user's borrowing history and the top books in our library, recommend 5-8 books they might enjoy.
 
@@ -73,25 +91,28 @@ Return the response as a valid JSON array of objects with this structure:
   }
 ]
 
-Only return the JSON array, no additional text.`
+Only return the JSON array, no additional text.`;
 
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const text = response.text().trim()
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text().trim();
 
     // Clean up the response to ensure it's valid JSON
-    const cleanedText = text.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim()
+    const cleanedText = text
+      .replace(/```json\s*/g, "")
+      .replace(/```\s*$/g, "")
+      .trim();
 
     try {
-      const recommendations = JSON.parse(cleanedText)
-      return recommendations
+      const recommendations = JSON.parse(cleanedText);
+      return recommendations;
     } catch (parseError) {
-      console.error('Error parsing AI response:', parseError)
-      console.error('Raw response:', text)
-      throw new Error('Failed to parse AI recommendations. Please try again.')
+      console.error("Error parsing AI response:", parseError);
+      console.error("Raw response:", text);
+      throw new Error("Failed to parse AI recommendations. Please try again.");
     }
   } catch (error) {
-    console.error('Error generating book recommendations:', error)
-    throw new Error('Failed to generate recommendations. Please try again.')
+    console.error("Error generating book recommendations:", error);
+    throw new Error("Failed to generate recommendations. Please try again.");
   }
-}
+};
