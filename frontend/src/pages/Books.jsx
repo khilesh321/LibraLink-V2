@@ -480,7 +480,7 @@ export default function Books() {
                       <img
                         src={book.cover_image_url}
                         alt={book.title}
-                        className="w-full object-cover md:absolute md:group-hover:scale-x-0 mx-auto transition duration-300"
+                        className="w-full object-cover md:absolute z-10 md:group-hover:scale-x-0 mx-auto transition duration-300"
                       />
                     ) : (
                       <div className="w-full h-54 bg-gray-300 flex items-center justify-center">

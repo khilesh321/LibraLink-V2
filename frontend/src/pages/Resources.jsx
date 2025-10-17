@@ -11,6 +11,7 @@ export default function Resources() {
   const [readPopup, setReadPopup] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sizeFilter, setSizeFilter] = useState("all");
+  const [downloadingId, setDownloadingId] = useState(null);
   const { role } = useUserRole();
 
   useEffect(() => {
@@ -39,6 +40,8 @@ export default function Resources() {
 
   const downloadPdf = async (doc) => {
     try {
+      setDownloadingId(doc.id);
+
       // Create a signed URL for download
       const { data: signedUrlData, error } = await supabase.storage
         .from("books")
@@ -74,6 +77,8 @@ export default function Resources() {
     } catch (error) {
       console.error("Error downloading PDF:", error);
       toast.error("Failed to download PDF. Please try again.");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -374,7 +379,7 @@ export default function Resources() {
                     <img
                       src={pdf.cover_image_url}
                       alt={pdf.name}
-                      className="w-full md:absolute md:group-hover:scale-x-0 mx-auto object-fit transition duration-300"
+                      className="w-full md:absolute z-10 md:group-hover:scale-x-0 mx-auto object-fit transition duration-300"
                     />
                   ) : (
                     <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
@@ -417,12 +422,22 @@ export default function Resources() {
                     </button>
                     <button
                       onClick={() => downloadPdf(pdf)}
-                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-1"
+                      disabled={downloadingId === pdf.id}
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white text-sm font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg disabled:shadow-none transition-all duration-200 flex items-center justify-center gap-1 disabled:cursor-not-allowed"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span>Download</span>
+                      {downloadingId === pdf.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Downloading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <span>Download</span>
+                        </>
+                      )}
                     </button>
                   </div>
 
