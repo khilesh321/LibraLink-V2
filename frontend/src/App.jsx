@@ -1,4 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "./supabase/supabaseClient";
 import Navbar from "./components/Navbar";
 import Login from "./Auth/Login.jsx";
 import Home from "./pages/Home.jsx";
@@ -21,31 +24,57 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Handle OAuth redirect and clean URL
+    const handleAuthRedirect = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && location.pathname === "/login") {
+        // Clean the URL by removing the hash
+        window.history.replaceState({}, document.title, "/");
+        navigate("/");
+      }
+    };
+
+    handleAuthRedirect();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        // Clean the URL and navigate to home
+        window.history.replaceState({}, document.title, "/");
+        navigate("/");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate, location]);
+
   return (
-    <BrowserRouter>
-      <div className="min-h-screen">
-        <Navbar />
-        <ReactLenis root>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/upload" element={<PdfUpload />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/resources/edit/:id" element={<EditResource />} />
-            <Route path="/admin/roles" element={<RoleManager />} />
-            <Route path="/admin/transactions" element={<AdminTransactions />} />
-            <Route path="/books" element={<Books />} />
-            <Route path="/books/add" element={<AddBook />} />
-            <Route path="/books/edit/:id" element={<EditBook />} />
-            <Route path="/my-transactions" element={<MyTransactions />} />
-            <Route path="/recommendations" element={<Recommendations />} />
-          </Routes>
-        </ReactLenis>
-        <Footer />
-      </div>
+    <div className="min-h-screen">
+      <Navbar />
+      <ReactLenis root>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/upload" element={<PdfUpload />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/resources/edit/:id" element={<EditResource />} />
+          <Route path="/admin/roles" element={<RoleManager />} />
+          <Route path="/admin/transactions" element={<AdminTransactions />} />
+          <Route path="/books" element={<Books />} />
+          <Route path="/books/add" element={<AddBook />} />
+          <Route path="/books/edit/:id" element={<EditBook />} />
+          <Route path="/my-transactions" element={<MyTransactions />} />
+          <Route path="/recommendations" element={<Recommendations />} />
+        </Routes>
+      </ReactLenis>
+      <Footer />
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -58,6 +87,6 @@ export default function App() {
         pauseOnHover
         theme="light"
       />
-    </BrowserRouter>
+    </div>
   );
 }
