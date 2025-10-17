@@ -74,14 +74,31 @@ export default function Recommendations() {
 
       if (topError) throw topError
 
-      if (userBorrowedBooks.length === 0) {
-        toast.info('You need to borrow some books first to get personalized recommendations!')
-        setRecommendations([])
-        return
-      }
+      // Fetch ratings for top books
+      const topBookIds = topBooks.map(b => b.id)
+      const { data: ratingsData, error: ratingsError } = await supabase
+        .from('book_ratings')
+        .select('book_id, rating')
+        .in('book_id', topBookIds)
+      if (ratingsError) throw ratingsError
 
-      // Generate AI recommendations
-      const aiRecommendations = await generateBookRecommendations(userBorrowedBooks, topBooks || [])
+      // Calculate average rating for each top book
+      const ratingsMap = {}
+      ratingsData.forEach(r => {
+        if (!ratingsMap[r.book_id]) ratingsMap[r.book_id] = []
+        ratingsMap[r.book_id].push(r.rating)
+      })
+      const topBooksWithRatings = topBooks.map(book => {
+        const ratings = ratingsMap[book.id] || []
+        const averageRating = ratings.length > 0 ? (ratings.reduce((sum, r) => sum + r, 0) / ratings.length) : 0
+        return { ...book, averageRating }
+      })
+
+      // Sort top books by average rating (descending)
+      topBooksWithRatings.sort((a, b) => b.averageRating - a.averageRating)
+
+      // Pass ratings to AI recommendations
+      const aiRecommendations = await generateBookRecommendations(userBorrowedBooks, topBooksWithRatings || [])
 
       // Fetch full book details for recommended books
       const recommendedTitles = aiRecommendations.map(rec => rec.title)
