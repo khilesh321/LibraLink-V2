@@ -12,10 +12,12 @@ import {
   Clock,
   RotateCcw,
   QrCode,
+  FileText,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "react-toastify";
 import QRCodeGenerator from "./QRCodeGenerator";
+import BookSummaryModal from "./BookSummaryModal";
 
 export default function BookDetailsModal({ bookId, isOpen, onClose }) {
   const { role, loading: roleLoading } = useUserRole();
@@ -28,6 +30,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
   const [userTransaction, setUserTransaction] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
 
   useEffect(() => {
     if (isOpen && bookId) {
@@ -355,6 +358,13 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                           <QrCode className="w-4 h-4" />
                           {showQRCode ? "Hide QR Code" : "Generate QR Code"}
                         </button>
+                        <button
+                          onClick={() => setShowSummary(true)}
+                          className="flex-1 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <FileText className="w-4 h-4" />
+                          Summarize Book
+                        </button>
                       </div>
                       {userTransaction && (
                         <div className="mt-3 p-3 bg-blue-50 rounded-lg">
@@ -487,6 +497,13 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
           </div>
         )}
       </div>
+
+      {/* Book Summary Modal */}
+      <BookSummaryModal
+        book={book}
+        isOpen={showSummary}
+        onClose={() => setShowSummary(false)}
+      />
     </div>
   );
 }
