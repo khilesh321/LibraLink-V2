@@ -11,9 +11,11 @@ import {
   CheckCircle,
   Clock,
   RotateCcw,
+  QrCode,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "react-toastify";
+import QRCodeGenerator from "./QRCodeGenerator";
 
 export default function BookDetailsModal({ bookId, isOpen, onClose }) {
   const { role, loading: roleLoading } = useUserRole();
@@ -25,6 +27,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userTransaction, setUserTransaction] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
 
   useEffect(() => {
     if (isOpen && bookId) {
@@ -215,7 +218,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
   return (
     <div
       data-lenis-prevent
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
     >
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {loading ? (
@@ -345,6 +348,13 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                               : "Not Available"}
                           </button>
                         )}
+                        <button
+                          onClick={() => setShowQRCode(!showQRCode)}
+                          className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          <QrCode className="w-4 h-4" />
+                          {showQRCode ? "Hide QR Code" : "Generate QR Code"}
+                        </button>
                       </div>
                       {userTransaction && (
                         <div className="mt-3 p-3 bg-blue-50 rounded-lg">
@@ -356,6 +366,21 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                           </div>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* QR Code Section */}
+                  {showQRCode && (
+                    <div className="mt-6">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                        Share Book QR Code
+                      </h4>
+                      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4">
+                        <QRCodeGenerator
+                          bookUrl={`${window.location.origin}/book/${bookId}`}
+                          bookTitle={book.title}
+                        />
+                      </div>
                     </div>
                   )}
 

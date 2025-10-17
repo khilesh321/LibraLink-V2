@@ -9,6 +9,7 @@ import RoleManager from "./pages/RoleManager.jsx";
 import Books from "./pages/Books.jsx";
 import AddBook from "./components/AddBook.jsx";
 import EditBook from "./components/EditBook.jsx";
+import BookDetailsPage from "./pages/BookDetailsPage.jsx";
 import MyTransactions from "./pages/MyTransactions.jsx";
 import AdminTransactions from "./pages/AdminTransactions.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/books" element={<Books />} />
           <Route path="/books/add" element={<AddBook />} />
           <Route path="/books/edit/:id" element={<EditBook />} />
+          <Route path="/book/:id" element={<BookDetailsPage />} />
           <Route path="/my-transactions" element={<MyTransactions />} />
           <Route path="/recommendations" element={<Recommendations />} />
         </Routes>
