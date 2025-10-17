@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 export default function PdfUpload() {
   const [file, setFile] = useState(null);
   const [documentName, setDocumentName] = useState("");
+  const [author, setAuthor] = useState("");
   const [flipbookUrl, setFlipbookUrl] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
@@ -69,13 +70,29 @@ export default function PdfUpload() {
       return;
     }
 
+    if (!documentName.trim() || !author.trim()) {
+      toast.error("Please enter both title and author before generating description");
+      return;
+    }
+
     setGeneratingDescription(true);
     try {
       // Initialize Gemini AI
       const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-      const prompt = `Generate a brief, engaging description for a document titled "${documentName}". This appears to be a PDF document. Create a description that would help users understand what this document contains and why they might be interested in reading it. Keep it under 200 words.`;
+      const prompt = `Write a single, engaging description for a PDF document titled "${documentName}" by ${author}.
+
+Requirements:
+- Write exactly ONE description (no multiple options or numbered lists)
+- Do not include any headers, titles, or formatting like "Option 1" or "**Bold text**"
+- Focus on what the document likely contains based on its title and author
+- Make it informative and enticing to encourage reading
+- Keep it between 100-200 words
+- Write in a natural, flowing paragraph style
+- Assume this is educational or professional content unless the title suggests otherwise
+
+Description:`;
 
       const result = await model.generateContent(prompt);
       const generatedDescription = result.response.text();
@@ -135,6 +152,7 @@ export default function PdfUpload() {
         .insert([
           {
             name: documentName.trim(),
+            author: author.trim(),
             filename: fileName,
             filepath: filePath,
             size: file.size,
@@ -158,6 +176,7 @@ export default function PdfUpload() {
       setMessage("PDF uploaded successfully!");
       setFile(null);
       setDocumentName("");
+      setAuthor("");
       setFlipbookUrl("");
       setDescription("");
       setCoverImage(null);
@@ -244,6 +263,26 @@ export default function PdfUpload() {
       {file && (
         <div className="mb-4">
           <label
+            htmlFor="author"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Author
+          </label>
+          <input
+            id="author"
+            type="text"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            placeholder="Enter author name"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={uploading}
+          />
+        </div>
+      )}
+
+      {file && (
+        <div className="mb-4">
+          <label
             htmlFor="flipbook-url"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
@@ -275,7 +314,7 @@ export default function PdfUpload() {
             </label>
             <button
               onClick={generateDescription}
-              disabled={generatingDescription}
+              disabled={generatingDescription || !documentName.trim() || !author.trim()}
               className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
             >
               <Wand2 className="w-4 h-4" />
