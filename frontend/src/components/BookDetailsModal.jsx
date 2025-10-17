@@ -1,14 +1,20 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
-import { X, BookOpen, User, Calendar, Hash, Star } from "lucide-react";
+import useUserRole from "../supabase/useUserRole";
+import { X, BookOpen, User, Calendar, Hash, Star, CheckCircle, Clock, RotateCcw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { toast } from "react-toastify";
 
 export default function BookDetailsModal({ bookId, isOpen, onClose }) {
+  const { role, loading: roleLoading } = useUserRole();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(false);
   const [availability, setAvailability] = useState(null);
   const [ratings, setRatings] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userTransaction, setUserTransaction] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen && bookId) {
@@ -20,6 +26,10 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
   const fetchBookDetails = async () => {
     setLoading(true);
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+
       // Fetch book details
       const { data: bookData, error: bookError } = await supabase
         .from("books")
@@ -39,6 +49,33 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
         }
       );
       setAvailability(availError ? true : available);
+
+      // Check if user has this book issued
+      if (user) {
+        const { data: transactionData, error: transactionError } = await supabase
+          .from("book_transactions")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("book_id", bookId)
+          .eq("action", "issue")
+          .order("transaction_date", { ascending: false })
+          .limit(1);
+
+        if (!transactionError && transactionData && transactionData.length > 0) {
+          // Check if book has been returned
+          const { data: returnData } = await supabase
+            .from("book_transactions")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("book_id", bookId)
+            .eq("action", "return")
+            .gte("transaction_date", transactionData[0].transaction_date);
+
+          if (!returnData || returnData.length === 0) {
+            setUserTransaction(transactionData[0]);
+          }
+        }
+      }
 
       // Fetch ratings
       const { data: ratingsData, error: ratingsError } = await supabase
@@ -67,6 +104,84 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
       console.error("Error fetching book details:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleIssueBook = async () => {
+    if (!currentUser || !book) return;
+
+    setActionLoading(true);
+    try {
+      const { error } = await supabase.rpc("issue_book", {
+        user_uuid: currentUser.id,
+        book_uuid: bookId,
+      });
+
+      if (error) throw error;
+
+      toast.success("Book issued successfully!");
+      setAvailability(false);
+      setUserTransaction({
+        user_id: currentUser.id,
+        book_id: bookId,
+        action: "issue",
+        transaction_date: new Date().toISOString(),
+        due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
+      });
+    } catch (error) {
+      console.error("Error issuing book:", error);
+      toast.error(error.message || "Failed to issue book");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReturnBook = async () => {
+    if (!currentUser || !book) return;
+
+    setActionLoading(true);
+    try {
+      const { error } = await supabase.rpc("return_book", {
+        user_uuid: currentUser.id,
+        book_uuid: bookId,
+      });
+
+      if (error) throw error;
+
+      toast.success("Book returned successfully!");
+      setAvailability(true);
+      setUserTransaction(null);
+    } catch (error) {
+      console.error("Error returning book:", error);
+      toast.error(error.message || "Failed to return book");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRenewBook = async () => {
+    if (!currentUser || !book) return;
+
+    setActionLoading(true);
+    try {
+      const { error } = await supabase.rpc("renew_book", {
+        user_uuid: currentUser.id,
+        book_uuid: bookId,
+      });
+
+      if (error) throw error;
+
+      toast.success("Book renewed successfully!");
+      // Update the due date in userTransaction
+      setUserTransaction(prev => ({
+        ...prev,
+        due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // Extend by 14 days
+      }));
+    } catch (error) {
+      console.error("Error renewing book:", error);
+      toast.error(error.message || "Failed to renew book");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -170,6 +285,54 @@ export default function BookDetailsModal({ bookId, isOpen, onClose }) {
                       <div className="prose prose-sm max-w-none text-gray-700">
                         <ReactMarkdown>{book.description}</ReactMarkdown>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  {currentUser && role && !roleLoading && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                        Actions
+                      </h4>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        {userTransaction ? (
+                          <>
+                            <button
+                              onClick={handleReturnBook}
+                              disabled={actionLoading}
+                              className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              {actionLoading ? "Returning..." : "Return Book"}
+                            </button>
+                            <button
+                              onClick={handleRenewBook}
+                              disabled={actionLoading}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                              {actionLoading ? "Renewing..." : "Renew Book"}
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={handleIssueBook}
+                            disabled={actionLoading || !availability}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                          >
+                            <BookOpen className="w-4 h-4" />
+                            {actionLoading ? "Issuing..." : availability ? "Issue Book" : "Not Available"}
+                          </button>
+                        )}
+                      </div>
+                      {userTransaction && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm text-blue-700">
+                            <Clock className="w-4 h-4" />
+                            <span>Due: {formatDate(userTransaction.due_date)}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
