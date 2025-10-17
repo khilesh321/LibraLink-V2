@@ -1,7 +1,4 @@
-import { Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "./supabase/supabaseClient";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Login from "./Auth/Login.jsx";
 import Home from "./pages/Home.jsx";
@@ -25,39 +22,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    // Handle OAuth redirect and clean URL
-    const handleAuthRedirect = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session && location.pathname === "/login") {
-        // Clean the URL by removing the hash
-        window.history.replaceState({}, document.title, "/");
-        navigate("/");
-      }
-    };
-
-    handleAuthRedirect();
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        // Clean the URL and navigate to home
-        window.history.replaceState({}, document.title, "/");
-        navigate("/");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate, location]);
 
   return (
+    <BrowserRouter>
     <div className="min-h-screen">
       <Navbar />
       <ReactLenis root>
@@ -94,5 +61,6 @@ export default function App() {
         theme="light"
       />
     </div>
+    </BrowserRouter>
   );
 }
