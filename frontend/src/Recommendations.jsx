@@ -1,167 +1,182 @@
-import { useState, useEffect } from 'react'
-import { supabase } from './supabaseClient'
-import useUserRole from './useUserRole'
-import { toast } from 'react-toastify'
-import { generateBookRecommendations } from './geminiUtils'
-import { BookOpen, Star, Sparkles, Loader2 } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
+import { useState, useEffect } from "react";
+import { supabase } from "./supabaseClient";
+import useUserRole from "./useUserRole";
+import { toast } from "react-toastify";
+import { generateBookRecommendations } from "./geminiUtils";
+import { BookOpen, Star, Sparkles, Loader2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 export default function Recommendations() {
-  const { role, loading: roleLoading } = useUserRole()
-  const [recommendations, setRecommendations] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [user, setUser] = useState(null)
+  const { role, loading: roleLoading } = useUserRole();
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     if (!roleLoading) {
       if (!role) {
-        window.location.href = '/login'
-        return
+        window.location.href = "/login";
+        return;
       }
-      fetchUserAndGenerateRecommendations()
+      fetchUserAndGenerateRecommendations();
     }
-  }, [roleLoading, role])
+  }, [roleLoading, role]);
 
   const fetchUserAndGenerateRecommendations = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
-      setUser(user)
-      await generateRecommendations(user.id)
+      setUser(user);
+      await generateRecommendations(user.id);
     } catch (error) {
-      console.error('Error:', error)
-      toast.error('Failed to load recommendations')
+      console.error("Error:", error);
+      toast.error("Failed to load recommendations");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const generateRecommendations = async (userId) => {
-    setGenerating(true)
+    setGenerating(true);
     try {
       // Fetch user's last 5 borrowed books
       const { data: transactions, error: transError } = await supabase
-        .from('book_transactions')
-        .select('book_id')
-        .eq('user_id', userId)
-        .eq('action', 'issue')
-        .order('transaction_date', { ascending: false })
-        .limit(5)
+        .from("book_transactions")
+        .select("book_id")
+        .eq("user_id", userId)
+        .eq("action", "issue")
+        .order("transaction_date", { ascending: false })
+        .limit(5);
 
-      if (transError) throw transError
+      if (transError) throw transError;
 
-      const bookIds = [...new Set(transactions?.map(t => t.book_id) || [])]
+      const bookIds = [...new Set(transactions?.map((t) => t.book_id) || [])];
 
-      let userBorrowedBooks = []
+      let userBorrowedBooks = [];
       if (bookIds.length > 0) {
         const { data: books, error: booksError } = await supabase
-          .from('books')
-          .select('id, title, author, description')
-          .in('id', bookIds)
+          .from("books")
+          .select("id, title, author, description")
+          .in("id", bookIds);
 
-        if (booksError) throw booksError
-        userBorrowedBooks = books || []
+        if (booksError) throw booksError;
+        userBorrowedBooks = books || [];
       }
 
       // Fetch top 50 books (by creation date or some metric)
       const { data: topBooks, error: topError } = await supabase
-        .from('books')
-        .select('id, title, author, description')
-        .order('created_at', { ascending: false })
-        .limit(50)
+        .from("books")
+        .select("id, title, author, description")
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-      if (topError) throw topError
+      if (topError) throw topError;
 
       // Fetch ratings for top books
-      const topBookIds = topBooks.map(b => b.id)
+      const topBookIds = topBooks.map((b) => b.id);
       const { data: ratingsData, error: ratingsError } = await supabase
-        .from('book_ratings')
-        .select('book_id, rating')
-        .in('book_id', topBookIds)
-      if (ratingsError) throw ratingsError
+        .from("book_ratings")
+        .select("book_id, rating")
+        .in("book_id", topBookIds);
+      if (ratingsError) throw ratingsError;
 
       // Calculate average rating for each top book
-      const ratingsMap = {}
-      ratingsData.forEach(r => {
-        if (!ratingsMap[r.book_id]) ratingsMap[r.book_id] = []
-        ratingsMap[r.book_id].push(r.rating)
-      })
-      const topBooksWithRatings = topBooks.map(book => {
-        const ratings = ratingsMap[book.id] || []
-        const averageRating = ratings.length > 0 ? (ratings.reduce((sum, r) => sum + r, 0) / ratings.length) : 0
-        return { ...book, averageRating }
-      })
+      const ratingsMap = {};
+      ratingsData.forEach((r) => {
+        if (!ratingsMap[r.book_id]) ratingsMap[r.book_id] = [];
+        ratingsMap[r.book_id].push(r.rating);
+      });
+      const topBooksWithRatings = topBooks.map((book) => {
+        const ratings = ratingsMap[book.id] || [];
+        const averageRating =
+          ratings.length > 0
+            ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+            : 0;
+        return { ...book, averageRating };
+      });
 
       // Sort top books by average rating (descending)
-      topBooksWithRatings.sort((a, b) => b.averageRating - a.averageRating)
+      topBooksWithRatings.sort((a, b) => b.averageRating - a.averageRating);
 
       // Pass ratings to AI recommendations
-      const aiRecommendations = await generateBookRecommendations(userBorrowedBooks, topBooksWithRatings || [])
+      const aiRecommendations = await generateBookRecommendations(
+        userBorrowedBooks,
+        topBooksWithRatings || []
+      );
 
       // Fetch full book details for recommended books
-      const recommendedTitles = aiRecommendations.map(rec => rec.title)
+      const recommendedTitles = aiRecommendations.map((rec) => rec.title);
       const { data: fullBooks, error: fullError } = await supabase
-        .from('books')
-        .select('*')
-        .in('title', recommendedTitles)
+        .from("books")
+        .select("*")
+        .in("title", recommendedTitles);
 
-      if (fullError) throw fullError
+      if (fullError) throw fullError;
 
       // Merge AI recommendations with full book data
-      const recommendationsWithDetails = aiRecommendations.map(rec => {
-        const bookDetails = fullBooks?.find(book => book.title === rec.title)
-        return {
-          ...rec,
-          ...bookDetails
-        }
-      }).filter(rec => rec.id) // Only include books that exist in our database
+      const recommendationsWithDetails = aiRecommendations
+        .map((rec) => {
+          const bookDetails = fullBooks?.find(
+            (book) => book.title === rec.title
+          );
+          return {
+            ...rec,
+            ...bookDetails,
+          };
+        })
+        .filter((rec) => rec.id); // Only include books that exist in our database
 
-      setRecommendations(recommendationsWithDetails)
-      toast.success('Recommendations generated successfully!')
-
+      setRecommendations(recommendationsWithDetails);
+      toast.success("Recommendations generated successfully!");
     } catch (error) {
-      console.error('Error generating recommendations:', error)
-      toast.error('Failed to generate recommendations. Please try again.')
+      console.error("Error generating recommendations:", error);
+      toast.error("Failed to generate recommendations. Please try again.");
     } finally {
-      setGenerating(false)
+      setGenerating(false);
     }
-  }
+  };
 
   const handleIssueBook = async (book) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
 
       // Check if book is available
-      const { data: available, error: availError } = await supabase.rpc('is_book_available', {
-        book_uuid: book.id
-      })
+      const { data: available, error: availError } = await supabase.rpc(
+        "is_book_available",
+        {
+          book_uuid: book.id,
+        }
+      );
 
-      if (availError) throw availError
+      if (availError) throw availError;
 
       if (!available) {
-        toast.error('Book is not available for issue')
-        return
+        toast.error("Book is not available for issue");
+        return;
       }
 
       // Issue the book
-      const { error: issueError } = await supabase.rpc('issue_book', {
+      const { error: issueError } = await supabase.rpc("issue_book", {
         book_uuid: book.id,
-        user_uuid: user.id
-      })
+        user_uuid: user.id,
+      });
 
-      if (issueError) throw issueError
+      if (issueError) throw issueError;
 
-      toast.success(`"${book.title}" issued successfully!`)
+      toast.success(`"${book.title}" issued successfully!`);
       // Optionally refresh recommendations or redirect to books page
-
     } catch (error) {
-      console.error('Error issuing book:', error)
-      toast.error('Failed to issue book: ' + error.message)
+      console.error("Error issuing book:", error);
+      toast.error("Failed to issue book: " + error.message);
     }
-  }
+  };
 
   if (roleLoading || loading) {
     return (
@@ -171,7 +186,7 @@ export default function Recommendations() {
           <p className="text-gray-600">Loading recommendations...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -189,7 +204,7 @@ export default function Recommendations() {
               </p>
             </div>
             <button
-              onClick={() => window.location.href = '/books'}
+              onClick={() => (window.location.href = "/books")}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
             >
               Browse All Books
@@ -199,18 +214,25 @@ export default function Recommendations() {
           {generating ? (
             <div className="bg-white rounded-lg shadow-md p-8 text-center">
               <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Generating Recommendations</h2>
-              <p className="text-gray-600">AI is analyzing your reading preferences...</p>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Generating Recommendations
+              </h2>
+              <p className="text-gray-600">
+                AI is analyzing your reading preferences...
+              </p>
             </div>
           ) : recommendations.length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-8 text-center">
               <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">No Recommendations Yet</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                No Recommendations Yet
+              </h2>
               <p className="text-gray-600 mb-4">
-                You need to borrow some books first to get personalized recommendations.
+                You need to borrow some books first to get personalized
+                recommendations.
               </p>
               <button
-                onClick={() => window.location.href = '/books'}
+                onClick={() => (window.location.href = "/books")}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-300"
               >
                 Start Borrowing Books
@@ -219,7 +241,10 @@ export default function Recommendations() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recommendations.map((book, index) => (
-                <div key={book.id || index} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                <div
+                  key={book.id || index}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                >
                   <div className="aspect-w-3 aspect-h-4 bg-gray-200 relative">
                     {book.cover_image_url ? (
                       <img
@@ -243,7 +268,7 @@ export default function Recommendations() {
                       {book.title}
                     </h3>
                     <p className="text-gray-600 text-sm mb-2">
-                      by {book.author || 'Unknown Author'}
+                      by {book.author || "Unknown Author"}
                     </p>
 
                     <div className="mb-3">
@@ -273,11 +298,11 @@ export default function Recommendations() {
               disabled={generating}
               className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 disabled:cursor-not-allowed"
             >
-              {generating ? 'Generating...' : 'Refresh Recommendations'}
+              {generating ? "Generating..." : "Refresh Recommendations"}
             </button>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
