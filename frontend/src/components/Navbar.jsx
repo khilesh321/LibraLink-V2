@@ -19,6 +19,7 @@ import {
   Search,
   Clipboard,
   Sparkles,
+  Book,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -82,12 +83,6 @@ export default function Navbar() {
   // Navigation items with dropdown structure
   const navItems = [
     {
-      name: "Home",
-      path: "/",
-      icon: Home,
-      show: true,
-    },
-    {
       name: "Books",
       icon: BookOpen,
       dropdown: [
@@ -96,6 +91,11 @@ export default function Navbar() {
           name: "AI Recommendations",
           path: "/recommendations",
           icon: Sparkles,
+        },
+        {
+          name: "AI Book Generator",
+          path: "/book-pdf-generator",
+          icon: Book,
         },
         ...(isLibrarian
           ? [{ name: "Add Book", path: "/books/add", icon: Upload }]

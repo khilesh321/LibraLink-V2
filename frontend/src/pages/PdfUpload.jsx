@@ -73,10 +73,8 @@ export default function PdfUpload() {
     try {
       // Initialize Gemini AI
       const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-      // For now, we'll generate a description based on the filename and document name
-      // In a real implementation, you might want to extract text from the PDF
       const prompt = `Generate a brief, engaging description for a document titled "${documentName}". This appears to be a PDF document. Create a description that would help users understand what this document contains and why they might be interested in reading it. Keep it under 200 words.`;
 
       const result = await model.generateContent(prompt);

@@ -492,7 +492,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-sm">LibraLink Assistant</h3>
+                <h3 className="font-semibold text-sm">LibraLink AI Assistant</h3>
                 <p className="text-xs text-blue-100 opacity-90">Online • Ready to help</p>
               </div>
             </div>

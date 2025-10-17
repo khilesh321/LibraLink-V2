@@ -19,6 +19,7 @@ import Recommendations from "./pages/Recommendations.jsx";
 import AnalyticsDashboard from "./components/AnalyticsDashboard.jsx";
 import Footer from "./components/Footer.jsx";
 import AIChatbot from "./components/AIChatbot.jsx";
+import BookPDFGeneratorPage from "./pages/BookPDFGeneratorPage.jsx";
 import { ReactLenis } from "lenis/react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/book/:id" element={<BookDetailsPage />} />
           <Route path="/my-transactions" element={<MyTransactions />} />
           <Route path="/recommendations" element={<Recommendations />} />
+          <Route path="/book-pdf-generator" element={<BookPDFGeneratorPage />} />
         </Routes>
       </ReactLenis>
       <Footer />
