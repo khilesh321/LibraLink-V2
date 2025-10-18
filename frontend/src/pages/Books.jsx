@@ -11,7 +11,7 @@ export default function Books() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userTransactions, setUserTransactions] = useState([]);
-  const [actionLoading, setActionLoading] = useState(null);
+  const [actionLoading, setActionLoading] = useState({}); // { bookId: actionType }
   const [searchQuery, setSearchQuery] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [selectedBookId, setSelectedBookId] = useState(null);
@@ -140,7 +140,7 @@ export default function Books() {
   };
 
   const handleIssueBook = async (bookId) => {
-    setActionLoading(bookId);
+    setActionLoading(prev => ({ ...prev, [bookId]: 'issue' }));
     try {
       const {
         data: { user },
@@ -165,7 +165,11 @@ export default function Books() {
       console.error("Error issuing book:", error);
       toast.error("Failed to issue book: " + error.message);
     } finally {
-      setActionLoading(null);
+      setActionLoading(prev => {
+        const newState = { ...prev };
+        delete newState[bookId];
+        return newState;
+      });
     }
   };
 
@@ -182,7 +186,7 @@ export default function Books() {
   const handleRatingSubmitted = async () => {
     if (!ratingBookId) return;
 
-    setActionLoading(ratingBookId);
+    setActionLoading(prev => ({ ...prev, [ratingBookId]: 'return' }));
     try {
       const {
         data: { user },
@@ -207,7 +211,11 @@ export default function Books() {
       console.error("Error returning book:", error);
       toast.error("Failed to return book: " + error.message);
     } finally {
-      setActionLoading(null);
+      setActionLoading(prev => {
+        const newState = { ...prev };
+        delete newState[ratingBookId];
+        return newState;
+      });
       setRatingBookId(null);
       setRatingBookTitle("");
       setIsRatingModalOpen(false);
@@ -250,7 +258,7 @@ export default function Books() {
   };
 
   const handleRenewBook = async (bookId) => {
-    setActionLoading(bookId);
+    setActionLoading(prev => ({ ...prev, [bookId]: 'renew' }));
     try {
       const {
         data: { user },
@@ -274,7 +282,11 @@ export default function Books() {
       console.error("Error renewing book:", error);
       toast.error("Failed to renew book: " + error.message);
     } finally {
-      setActionLoading(null);
+      setActionLoading(prev => {
+        const newState = { ...prev };
+        delete newState[bookId];
+        return newState;
+      });
     }
   };
 
@@ -291,7 +303,7 @@ export default function Books() {
       return;
     }
 
-    setActionLoading(bookId);
+    setActionLoading(prev => ({ ...prev, [bookId]: 'delete' }));
     try {
       const { error } = await supabase.from("books").delete().eq("id", bookId);
 
@@ -303,7 +315,11 @@ export default function Books() {
       console.error("Error deleting book:", error);
       toast.error("Failed to delete book: " + error.message);
     } finally {
-      setActionLoading(null);
+      setActionLoading(prev => {
+        const newState = { ...prev };
+        delete newState[bookId];
+        return newState;
+      });
     }
   };
 
@@ -468,7 +484,6 @@ export default function Books() {
           ) : (
             filteredBooks.map((book) => {
               const bookStatus = getBookStatus(book.id);
-              const isAvailable = book.available;
 
               return (
                 <div
@@ -506,16 +521,7 @@ export default function Books() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between mb-3">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          isAvailable
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {isAvailable ? "Available" : "Issued"}
-                      </span>
+                    <div className="text-right mb-3">
                       <span className="text-sm text-gray-600">
                         {book.count || 1} {book.count === 1 ? "copy" : "copies"}
                       </span>
@@ -542,70 +548,12 @@ export default function Books() {
                       </div>
                     )}
 
-                    {bookStatus && (
-                      <div className="mb-3 p-2 bg-blue-50 rounded text-sm">
-                        <p className="text-blue-800">Issued to you</p>
-                        {bookStatus.dueDate && (
-                          <p className="text-blue-600">
-                            Due:{" "}
-                            {new Date(bookStatus.dueDate).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex space-x-2">
-                      {bookStatus ? (
-                        <>
-                          <button
-                            onClick={() => handleReturnBook(book.id)}
-                            disabled={actionLoading === book.id}
-                            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white text-sm font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-1 cursor-pointer"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {actionLoading === book.id
-                              ? "Returning..."
-                              : "Return"}
-                          </button>
-                          <button
-                            onClick={() => handleRenewBook(book.id)}
-                            disabled={actionLoading === book.id}
-                            className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white text-sm font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-1 cursor-pointer"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            {actionLoading === book.id
-                              ? "Renewing..."
-                              : "Renew"}
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => handleIssueBook(book.id)}
-                          disabled={actionLoading === book.id || !isAvailable}
-                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                          </svg>
-                          {actionLoading === book.id
-                            ? "Issuing..."
-                            : isAvailable
-                            ? "Issue Book"
-                            : "Unavailable"}
-                        </button>
-                      )}
-                    </div>
-
                     {/* View Details Button */}
                     <button
                       onClick={() => handleViewDetails(book.id)}
-                      className="w-full mt-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
@@ -626,13 +574,13 @@ export default function Books() {
                         </button>
                         <button
                           onClick={() => handleDeleteBook(book.id)}
-                          disabled={actionLoading === book.id}
+                          disabled={actionLoading[book.id] === 'delete'}
                           className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 disabled:from-gray-400 disabled:to-gray-500 text-white text-sm font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-1 cursor-pointer"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
-                          {actionLoading === book.id ? "Deleting..." : "Delete"}
+                          {actionLoading[book.id] === 'delete' ? "Deleting..." : "Delete"}
                         </button>
                       </div>
                     )}
@@ -649,6 +597,7 @@ export default function Books() {
         bookId={selectedBookId}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        onBookAction={fetchBooks} // Pass callback to refresh book data
       />
 
       {/* Rating Modal */}
