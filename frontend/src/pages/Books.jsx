@@ -19,6 +19,8 @@ export default function Books() {
   const [ratingBookId, setRatingBookId] = useState(null);
   const [ratingBookTitle, setRatingBookTitle] = useState("");
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [deleteBookId, setDeleteBookId] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBooks();
@@ -294,18 +296,18 @@ export default function Books() {
     window.location.href = `/books/edit/${bookId}`;
   };
 
-  const handleDeleteBook = async (bookId) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this book? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
+  const handleDeleteBook = (bookId) => {
+    setDeleteBookId(bookId);
+    setIsDeleteModalOpen(true);
+  };
 
-    setActionLoading(prev => ({ ...prev, [bookId]: 'delete' }));
+  const confirmDeleteBook = async () => {
+    if (!deleteBookId) return;
+
+    setIsDeleteModalOpen(false);
+    setActionLoading(prev => ({ ...prev, [deleteBookId]: 'delete' }));
     try {
-      const { error } = await supabase.from("books").delete().eq("id", bookId);
+      const { error } = await supabase.from("books").delete().eq("id", deleteBookId);
 
       if (error) throw error;
 
@@ -317,9 +319,10 @@ export default function Books() {
     } finally {
       setActionLoading(prev => {
         const newState = { ...prev };
-        delete newState[bookId];
+        delete newState[deleteBookId];
         return newState;
       });
+      setDeleteBookId(null);
     }
   };
 
@@ -608,6 +611,47 @@ export default function Books() {
         onClose={() => setIsRatingModalOpen(false)}
         onRatingSubmitted={handleRatingSubmitted}
       />
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Delete Book</h3>
+                  <p className="text-sm text-gray-600 mt-1">This action cannot be undone.</p>
+                </div>
+              </div>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete this book? This will permanently remove the book and all its data from the system.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setDeleteBookId(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteBook}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition duration-200"
+                >
+                  Delete Book
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
