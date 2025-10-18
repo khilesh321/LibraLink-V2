@@ -4,6 +4,8 @@ import useUserRole from "../supabase/useUserRole";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { FileText, Wand2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { generateBookCover } from "../utils/geminiUtils";
+import BookCoverGenerator from "../components/BookCoverGenerator";
 
 export default function PdfUpload() {
   const [file, setFile] = useState(null);
@@ -17,6 +19,8 @@ export default function PdfUpload() {
   const [description, setDescription] = useState("");
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const { role, loading } = useUserRole();
+  const [showCoverGenerator, setShowCoverGenerator] = useState(false);
+  const [generatedCoverUrl, setGeneratedCoverUrl] = useState(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -39,6 +43,7 @@ export default function PdfUpload() {
       setCoverImage(selectedFile);
       const url = URL.createObjectURL(selectedFile);
       setCoverPreviewUrl(url);
+      setMessage(""); // Clear any previous messages
     } else {
       setCoverImage(null);
       setCoverPreviewUrl(null);
@@ -107,6 +112,17 @@ Description:`;
     }
   };
 
+  const handleCoverGenerated = (coverUrl) => {
+    // This function will be called when a cover is successfully generated from the modal
+    if (coverUrl) {
+      setGeneratedCoverUrl(coverUrl);
+      setCoverPreviewUrl(coverUrl);
+      setCoverImage(null); // Clear any uploaded image
+      setShowCoverGenerator(false);
+      toast.success("Cover generated and applied!");
+    }
+  };
+
   const handleUpload = async () => {
     if (!["librarian", "admin"].includes(role)) {
       setMessage(
@@ -144,6 +160,13 @@ Description:`;
       let coverImageUrl = null;
       if (coverImage) {
         coverImageUrl = await uploadCoverImage(coverImage);
+      } else if (generatedCoverUrl) {
+        // Handle generated cover from modal
+        const response = await fetch(generatedCoverUrl);
+        const blob = await response.blob();
+        const generatedFileName = `generated-cover-${Date.now()}.png`;
+        const generatedFile = new File([blob], generatedFileName, { type: 'image/png' });
+        coverImageUrl = await uploadCoverImage(generatedFile);
       }
 
       // Save document metadata to database
@@ -181,6 +204,7 @@ Description:`;
       setDescription("");
       setCoverImage(null);
       setCoverPreviewUrl(null);
+      setGeneratedCoverUrl(null);
       // Reset file inputs
       document.getElementById("pdf-input").value = "";
       document.getElementById("cover-input").value = "";
@@ -338,12 +362,23 @@ Description:`;
 
       {file && (
         <div className="mb-4">
-          <label
-            htmlFor="cover-input"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Cover Image (Optional)
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label
+              htmlFor="cover-input"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Cover Image (Optional)
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowCoverGenerator(true)}
+              disabled={!documentName.trim() || !author.trim()}
+              className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
+            >
+              <Wand2 className="w-4 h-4" />
+              AI Generate
+            </button>
+          </div>
           <input
             id="cover-input"
             type="file"
@@ -353,7 +388,7 @@ Description:`;
             disabled={uploading}
           />
           <p className="text-xs text-gray-500 mt-1">
-            Upload a cover image for the document (JPG, PNG, etc.)
+            Upload a cover image or generate one with AI using the document title and author
           </p>
         </div>
       )}
@@ -389,6 +424,35 @@ Description:`;
         >
           {message}
         </p>
+      )}
+
+      {/* Cover Generator Modal */}
+      {showCoverGenerator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Generate Document Cover
+              </h2>
+              <button
+                onClick={() => setShowCoverGenerator(false)}
+                className="text-gray-400 hover:text-gray-600 transition duration-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+              <BookCoverGenerator
+                initialTitle={documentName}
+                initialAuthor={author}
+                onCoverGenerated={handleCoverGenerated}
+                isModal={true}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

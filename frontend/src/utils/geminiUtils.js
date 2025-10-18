@@ -44,6 +44,47 @@ Make it engaging and suitable for a library catalog. Do not use any markdown for
 };
 
 /**
+ * Generate a cover description for book cover design using A4F AI
+ * @param {string} title - Book title
+ * @param {string} author - Book author
+ * @returns {Promise<string>} Generated cover description
+ */
+export const generateCoverDescription = async (title, author) => {
+  try {
+    const prompt = `Generate a creative and visually descriptive prompt for designing a book cover for:
+
+Title: "${title}"
+Author: ${author || "Unknown"}
+
+Create a detailed description that an AI image generator can use to create a professional book cover. Focus on:
+
+- Visual style and aesthetic (modern, classic, artistic, minimalist, etc.)
+- Color scheme and mood (warm, cool, dark, bright, mysterious, etc.)
+- Key visual elements that represent the book's genre or theme
+- Typography style suggestions
+- Overall composition and layout hints
+- Specific design motifs or symbols that would work well
+
+Keep the description concise but detailed enough for AI image generation (50-100 words). Make it creative and specific to help generate an attractive, professional book cover.
+
+Example style: "Modern minimalist design with clean typography, cool blue and silver color scheme, subtle geometric patterns, professional and contemporary look"
+
+Do not include any plot spoilers or story details - focus purely on visual design elements.`;
+
+    const result = await a4fClient.chat.completions.create({
+      model: "provider-6/llama-3.2-3b-instruct",
+      messages: [
+        { role: "user", content: prompt },
+      ],
+    });
+
+    return result.choices[0].message.content.trim();
+  } catch (error) {
+    throw new Error("Failed to generate cover description. Please try again.");
+  }
+};
+
+/**
  * Generate book recommendations based on user's borrowing history
  * @param {Array} userBorrowedBooks - Array of user's last borrowed books
  * @param {Array} topBooks - Array of top 50 books in the library

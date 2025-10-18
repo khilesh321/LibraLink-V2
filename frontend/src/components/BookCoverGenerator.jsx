@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { generateBookCover } from "../utils/geminiUtils";
+import { generateBookCover, generateCoverDescription } from "../utils/geminiUtils";
 import { toast } from "react-toastify";
 
 export default function BookCoverGenerator({ initialTitle = "", initialAuthor = "", onCoverGenerated, isModal = false }) {
@@ -9,6 +9,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
   const [generatedImage, setGeneratedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
 
   const handleGenerateCover = async (e) => {
     e.preventDefault();
@@ -43,6 +44,32 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
     }
   };
 
+  const handleGenerateDescription = async () => {
+    if (!title.trim()) {
+      toast.warning("Please enter a book title first");
+      return;
+    }
+
+    if (!author.trim()) {
+      toast.warning("Please enter an author name first");
+      return;
+    }
+
+    setGeneratingDescription(true);
+    try {
+      const generatedDescription = await generateCoverDescription(
+        title.trim(),
+        author.trim()
+      );
+      setDescription(generatedDescription);
+      toast.success("Cover description generated successfully!");
+    } catch (error) {
+      toast.error("Failed to generate cover description. Please try again.");
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
+
   const handleDownloadCover = () => {
     if (!generatedImage) return;
 
@@ -53,11 +80,6 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
     link.click();
     document.body.removeChild(link);
     toast.success("Cover downloaded successfully!");
-
-    // Notify parent component if callback provided
-    if (onCoverGenerated) {
-      onCoverGenerated(generatedImage);
-    }
   };
 
   const handleReset = () => {
@@ -66,6 +88,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
     setDescription("");
     setGeneratedImage(null);
     setError(null);
+    setGeneratingDescription(false);
   };
 
   return (
@@ -131,22 +154,35 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="description"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Cover Description (Optional)
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label
+                      htmlFor="description"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Cover Style Description (Optional)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleGenerateDescription}
+                      disabled={generatingDescription || !title.trim() || !author.trim()}
+                      className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      {generatingDescription ? "Generating..." : "AI Generate"}
+                    </button>
+                  </div>
                   <textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows="4"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 resize-none"
-                    placeholder="Describe the style, theme, or mood you want for the cover (e.g., 'mysterious thriller', 'romantic fantasy', 'modern sci-fi')"
+                    placeholder="Describe the visual style, mood, and design elements you want for the cover (e.g., 'modern minimalist with cool blue tones', 'mysterious thriller with dark shadows')"
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    Help the AI understand the genre and style you want
+                    Help the AI understand the visual style and mood you want, or generate one automatically for cover design
                   </p>
                 </div>
 
@@ -241,28 +277,55 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                     </div>
 
                     <div className="space-y-3">
-                      <button
-                        onClick={handleDownloadCover}
-                        className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105 flex items-center justify-center"
-                      >
-                        <svg
-                          className="w-5 h-5 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={handleDownloadCover}
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105 flex items-center justify-center"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        Download & Apply Cover
-                      </button>
+                          <svg
+                            className="w-5 h-5 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          Download Cover
+                        </button>
 
-                      <p className="text-sm text-gray-500">
-                        Downloads as PNG file
+                        <button
+                          onClick={() => {
+                            if (onCoverGenerated) {
+                              onCoverGenerated(generatedImage);
+                              toast.success("Cover applied successfully!");
+                            }
+                          }}
+                          className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105 flex items-center justify-center"
+                        >
+                          <svg
+                            className="w-5 h-5 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                          Apply Cover
+                        </button>
+                      </div>
+
+                      <p className="text-sm text-gray-500 text-center">
+                        Download saves as PNG file • Apply uses the cover in your book upload
                       </p>
                     </div>
                   </div>
