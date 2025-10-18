@@ -420,7 +420,7 @@ export default function Resources() {
                     </div>
                   </div>
 
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                     <button
                       onClick={() => handleViewDetails(pdf)}
                       className="flex-1 bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer"
@@ -460,7 +460,7 @@ export default function Resources() {
 
                   {/* Admin/Librarian Actions */}
                   {["librarian", "admin"].includes(role) && (
-                    <div className="flex space-x-2 mt-3 pt-3 border-t border-gray-200">
+                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-3 pt-3 border-t border-gray-200">
                       <button
                         onClick={() => handleEditResource(pdf.id)}
                         className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer"
