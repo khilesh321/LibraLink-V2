@@ -1,10 +1,16 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from 'openai';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const a4fApiKey = import.meta.env.VITE_A4F_API_KEY;
+const a4fBaseUrl = 'https://api.a4f.co/v1';
+
+const a4fClient = new OpenAI({
+  apiKey: a4fApiKey,
+  baseURL: a4fBaseUrl,
+  dangerouslyAllowBrowser: true,
+});
 
 /**
- * Generate a book description using Gemini AI
+ * Generate a book description using A4F AI
  * @param {string} title - Book title
  * @param {string} author - Book author
  * @returns {Promise<string>} Generated description
@@ -24,9 +30,14 @@ Please provide a description that includes:
 
 Make it engaging and suitable for a library catalog. Do not use any markdown formatting like **bold** or *italic* text. Write in plain text only.`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text().trim();
+    const result = await a4fClient.chat.completions.create({
+      model: "provider-5/grok-4-0709",
+      messages: [
+        { role: "user", content: prompt },
+      ],
+    });
+
+    return result.choices[0].message.content.trim();
   } catch (error) {
     throw new Error("Failed to generate description. Please try again.");
   }
@@ -71,10 +82,19 @@ export const generateBookRecommendations = async (
 User's recently borrowed books:
 ${borrowedBooksText}
 
+***CRITICAL: DO NOT RECOMMEND ANY BOOKS FROM THIS BORROWING HISTORY LIST ABOVE***
+
 Top books in our library:
 ${topBooksText}
 
-Please analyze the user's reading preferences based on their borrowing history and recommend books from the top books list that match their interests. For each recommendation, provide:
+Please analyze the user's reading preferences based on their borrowing history and recommend books from the top books list that match their interests.
+
+***MANDATORY: Check each book you consider against the borrowing history list - if it appears there, DO NOT recommend it***
+***ABSOLUTELY CRITICAL: NEVER recommend any book listed in the user's borrowing history above***
+***MANDATORY: Only recommend books that are NOT in the borrowing history list***
+***IMPORTANT: DO NOT recommend books with titles containing words like 'test', 'demo', 'sample', 'example', 'dummy', 'temp', 'temporary', or 'placeholder'***
+
+For each recommendation, provide:
 
 1. Book title and author
 2. Brief reason why this book matches their interests
@@ -90,11 +110,18 @@ Return the response as a valid JSON array of objects with this structure:
   }
 ]
 
-Only return the JSON array, no additional text.`;
+Only return the JSON array, no additional text.
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().trim();
+Before finalizing your recommendations, double-check that NONE of your recommended books appear in the user's borrowing history list above. If you find any matches, remove them from your final recommendations.`;
+
+    const result = await a4fClient.chat.completions.create({
+      model: "provider-5/grok-4-0709",
+      messages: [
+        { role: "user", content: prompt },
+      ],
+    });
+
+    const text = result.choices[0].message.content.trim();
 
     // Clean up the response to ensure it's valid JSON
     const cleanedText = text

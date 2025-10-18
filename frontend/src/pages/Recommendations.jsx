@@ -3,7 +3,7 @@ import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
 import { generateBookRecommendations } from "../utils/geminiUtils";
-import { BookOpen, Star, Sparkles, Eye } from "lucide-react";
+import { BookOpen, Star, Sparkles, Eye, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import BookDetailsModal from "../components/BookDetailsModal";
 
@@ -46,25 +46,24 @@ export default function Recommendations() {
   const generateRecommendations = async (userId) => {
     setGenerating(true);
     try {
-      // Fetch user's last 5 borrowed books
-      const { data: transactions, error: transError } = await supabase
+      // Fetch ALL user's borrowed books (not just last 5) for comprehensive filtering
+      const { data: allTransactions, error: allTransError } = await supabase
         .from("book_transactions")
-        .select("book_id")
+        .select("book_id, transaction_date")
         .eq("user_id", userId)
         .eq("action", "issue")
-        .order("transaction_date", { ascending: false })
-        .limit(5);
+        .order("transaction_date", { ascending: false });
 
-      if (transError) throw transError;
+      if (allTransError) throw allTransError;
 
-      const bookIds = [...new Set(transactions?.map((t) => t.book_id) || [])];
+      const allBookIds = [...new Set(allTransactions?.map((t) => t.book_id) || [])];
 
       let userBorrowedBooks = [];
-      if (bookIds.length > 0) {
+      if (allBookIds.length > 0) {
         const { data: books, error: booksError } = await supabase
           .from("books")
           .select("id, title, author, description")
-          .in("id", bookIds);
+          .in("id", allBookIds);
 
         if (booksError) throw booksError;
         userBorrowedBooks = books || [];
@@ -111,8 +110,95 @@ export default function Recommendations() {
         topBooksWithRatings || []
       );
 
+      // Debug logging
+      console.log("User borrowed books:", userBorrowedBooks.map(b => ({ title: b.title, author: b.author, id: b.id })));
+      console.log("AI recommendations before filtering:", aiRecommendations.map(r => ({ title: r.title, author: r.author })));
+
+      // COMPREHENSIVE FILTERING: Remove books user has already borrowed
+      const userBorrowedTitles = userBorrowedBooks.map(book => book.title.toLowerCase().trim());
+      const userBorrowedAuthors = userBorrowedBooks.map(book => book.author?.toLowerCase().trim()).filter(Boolean);
+
+      const filteredRecommendations = aiRecommendations.filter(rec => {
+        const recTitle = rec.title.toLowerCase().trim();
+        const recAuthor = rec.author?.toLowerCase().trim();
+
+        // Check exact title match
+        const titleMatch = userBorrowedTitles.includes(recTitle);
+
+        // Check author match (if both have authors)
+        const authorMatch = recAuthor && userBorrowedAuthors.includes(recAuthor);
+
+        // Check for partial title matches (in case of slight variations)
+        const partialTitleMatch = userBorrowedTitles.some(borrowedTitle =>
+          borrowedTitle.includes(recTitle) || recTitle.includes(borrowedTitle)
+        );
+
+        const isBorrowed = titleMatch || authorMatch || partialTitleMatch;
+
+        if (isBorrowed) {
+          console.log("Filtering out already borrowed book:", {
+            recommended: { title: rec.title, author: rec.author },
+            reason: titleMatch ? "title match" : authorMatch ? "author match" : "partial title match"
+          });
+        }
+        return !isBorrowed;
+      });
+
+      console.log("AI recommendations after filtering:", filteredRecommendations.map(r => r.title));
+
+      // If we filtered out too many recommendations, get additional ones from top books
+      let finalRecommendations = filteredRecommendations;
+      if (filteredRecommendations.length < 3 && topBooksWithRatings.length > aiRecommendations.length) {
+        // Get additional recommendations from highly-rated books not already recommended
+        const recommendedTitles = new Set(filteredRecommendations.map(rec => rec.title.toLowerCase().trim()));
+        
+        // Filter out test/demo books from additional recommendations
+        const testKeywords = ['test', 'demo', 'sample', 'example', 'dummy', 'temp', 'temporary', 'placeholder'];
+        
+        const additionalBooks = topBooksWithRatings
+          .filter(book => !recommendedTitles.has(book.title.toLowerCase().trim()) &&
+                         !userBorrowedTitles.includes(book.title.toLowerCase().trim()) &&
+                         !userBorrowedAuthors.includes(book.author?.toLowerCase().trim()) &&
+                         !testKeywords.some(keyword => book.title.toLowerCase().trim().includes(keyword)))
+          .slice(0, 5 - filteredRecommendations.length)
+          .map(book => ({
+            title: book.title,
+            author: book.author || "Unknown",
+            reason: `Highly-rated book (${book.averageRating.toFixed(1)}/5 stars) that complements your reading interests.`,
+            relevanceScore: Math.min(7, Math.max(5, book.averageRating * 1.4))
+          }));
+
+        finalRecommendations = [...filteredRecommendations, ...additionalBooks];
+        console.log("Added additional recommendations:", additionalBooks.map(r => r.title));
+      }
+
+      // FINAL CHECK: Ensure no borrowed books made it through all filters
+      const finalFilteredRecommendations = finalRecommendations.filter(rec => {
+        const recTitle = rec.title.toLowerCase().trim();
+        const recAuthor = rec.author?.toLowerCase().trim();
+
+        const titleMatch = userBorrowedTitles.includes(recTitle);
+        const authorMatch = recAuthor && userBorrowedAuthors.includes(recAuthor);
+
+        // Also filter out test/demo books
+        const testKeywords = ['test', 'demo', 'sample', 'example', 'dummy', 'temp', 'temporary', 'placeholder'];
+        const isTestBook = testKeywords.some(keyword => recTitle.includes(keyword));
+
+        if (titleMatch || authorMatch) {
+          console.log("FINAL CHECK: Removing borrowed book from final recommendations:", rec.title);
+          return false;
+        }
+        if (isTestBook) {
+          console.log("FINAL CHECK: Removing test/demo book from final recommendations:", rec.title);
+          return false;
+        }
+        return true;
+      });
+
+      console.log("Final recommendations after all filtering:", finalFilteredRecommendations.map(r => r.title));
+
       // Fetch full book details for recommended books
-      const recommendedTitles = aiRecommendations.map((rec) => rec.title);
+      const recommendedTitles = finalFilteredRecommendations.map((rec) => rec.title);
       const { data: fullBooks, error: fullError } = await supabase
         .from("books")
         .select("*")
@@ -121,7 +207,7 @@ export default function Recommendations() {
       if (fullError) throw fullError;
 
       // Merge AI recommendations with full book data
-      const recommendationsWithDetails = aiRecommendations
+      const recommendationsWithDetails = finalFilteredRecommendations
         .map((rec) => {
           const bookDetails = fullBooks?.find(
             (book) => book.title === rec.title
