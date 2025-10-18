@@ -242,9 +242,21 @@ export default function Recommendations() {
   if (roleLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading recommendations...</p>
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
+          <div className="relative mb-6">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto"></div>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            🤖 AI is Thinking...
+          </h2>
+          <p className="text-gray-600 text-lg">
+            Analyzing your reading preferences and crafting personalized recommendations
+          </p>
+          <div className="mt-4 flex justify-center space-x-1">
+            <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+            <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+          </div>
         </div>
       </div>
     );
@@ -273,14 +285,24 @@ export default function Recommendations() {
           </div>
 
           {generating ? (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center">
-              <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Generating Recommendations
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-lg mx-auto">
+              <div className="relative mb-6">
+                <Loader2 className="w-16 h-16 animate-spin text-purple-600 mx-auto" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                🚀 AI is Generating Magic...
               </h2>
-              <p className="text-gray-600">
-                AI is analyzing your reading preferences...
+              <p className="text-gray-600 text-lg mb-4">
+                Our AI is crafting personalized book recommendations just for you
               </p>
+              <div className="flex justify-center items-center space-x-2">
+                <div className="flex space-x-1">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full animate-pulse"></div>
+                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                  <div className="w-3 h-3 bg-indigo-600 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                </div>
+                <span className="text-sm text-gray-500 ml-2">Analyzing your taste...</span>
+              </div>
             </div>
           ) : recommendations.length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-8 text-center">
@@ -333,12 +355,12 @@ export default function Recommendations() {
                     </p>
 
                     <div className="mb-3">
-                      <p className="text-sm text-gray-700 bg-blue-50 p-2 rounded-md">
+                      <div className="text-sm text-gray-700 bg-blue-50 p-2 rounded-md">
                         <strong>Why recommended:</strong>
                         <div className="mt-1 prose prose-sm max-w-none">
                           <ReactMarkdown>{book.reason}</ReactMarkdown>
                         </div>
-                      </p>
+                      </div>
                     </div>
 
                     <button
