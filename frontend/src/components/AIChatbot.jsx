@@ -437,17 +437,17 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
   return (
     <>
       {/* Floating Chat Icon */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-4 right-4 z-50 md:bottom-6 md:right-6">
         <button
           onClick={toggleChat}
-          className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 cursor-pointer relative overflow-hidden group ${
+          className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-3 md:p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 cursor-pointer relative overflow-hidden group ${
             isOpen ? 'animate-pulse' : ''
           }`}
           aria-label="Open AI Chat"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <svg
-            className={`w-6 h-6 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+            className={`w-5 h-5 md:w-6 md:h-6 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -470,15 +470,15 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
         <div data-lenis-prevent className={`fixed bg-white rounded-2xl shadow-2xl z-50 flex flex-col border border-gray-200/50 backdrop-blur-sm transition-all duration-500 ease-out transform ${
           isFullscreen
             ? 'inset-4 w-auto h-auto scale-100 opacity-100'
-            : 'bottom-24 right-6 w-96 h-[500px] scale-100 opacity-100'
+            : 'bottom-16 right-4 left-4 md:bottom-24 md:right-6 md:left-auto w-auto md:w-96 h-[400px] md:h-[500px] scale-100 opacity-100'
         } ${isOpen ? 'animate-in slide-in-from-bottom-4 fade-in duration-300' : 'animate-out slide-out-to-bottom-4 fade-out duration-200'}`}>
           {/* Chat Header */}
-          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 text-white p-4 rounded-t-2xl flex items-center justify-between relative overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 text-white p-3 md:p-4 rounded-t-2xl flex items-center justify-between relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
-            <div className="flex items-center space-x-3 relative z-10">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+            <div className="flex items-center space-x-2 md:space-x-3 relative z-10">
+              <div className="w-6 h-6 md:w-8 md:h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 md:w-5 md:h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -492,19 +492,19 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-sm">LibraLink AI Assistant</h3>
+                <h3 className="font-semibold text-sm md:text-sm">LibraLink AI Assistant</h3>
                 <p className="text-xs text-blue-100 opacity-90">Online • Ready to help</p>
               </div>
             </div>
             <div className="flex items-center space-x-1 relative z-10">
               <button
                 onClick={toggleFullscreen}
-                className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all duration-200 cursor-pointer"
+                className="text-white/80 hover:text-white hover:bg-white/10 p-2 md:p-2 rounded-lg transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
                 aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
               >
                 {isFullscreen ? (
                   <svg
-                    className="w-4 h-4"
+                    className="w-4 h-4 md:w-4 md:h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -518,7 +518,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                   </svg>
                 ) : (
                   <svg
-                    className="w-4 h-4"
+                    className="w-4 h-4 md:w-4 md:h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -534,11 +534,11 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               </button>
               <button
                 onClick={toggleChat}
-                className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all duration-200 cursor-pointer"
+                className="text-white/80 hover:text-white hover:bg-white/10 p-2 md:p-2 rounded-lg transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
                 aria-label="Close chat"
               >
                 <svg
-                  className="w-4 h-4"
+                  className="w-4 h-4 md:w-4 md:h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -555,7 +555,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
           </div>
 
           {/* Messages Area */}
-          <div className={`flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white ${
+          <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gradient-to-b from-gray-50 to-white ${
             isFullscreen ? 'bg-gray-50' : 'bg-gray-50'
           }`}>
             {messages.map((message, index) => (
@@ -566,8 +566,8 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               >
                 <div
                   className={`${
-                    isFullscreen ? 'max-w-4xl' : 'max-w-xs lg:max-w-md'
-                  } px-4 py-3 rounded-2xl shadow-sm relative group transition-all duration-200 hover:shadow-md ${
+                    isFullscreen ? 'max-w-4xl' : 'max-w-[calc(100vw-3rem)] sm:max-w-xs md:max-w-md'
+                  } px-3 py-2 md:px-4 md:py-3 rounded-2xl shadow-sm relative group transition-all duration-200 hover:shadow-md ${
                     message.sender === 'user'
                       ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md'
                       : 'bg-white text-gray-800 border border-gray-100 rounded-bl-md'
@@ -630,9 +630,9 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
 
           {/* Input Area */}
           <div className={`border-t border-gray-200/50 bg-white/80 backdrop-blur-sm rounded-b-2xl ${
-            isFullscreen ? 'p-6' : 'p-4'
+            isFullscreen ? 'p-4 md:p-6' : 'p-3 md:p-4'
           }`}>
-            <div className="flex space-x-3">
+            <div className="flex space-x-2 md:space-x-3">
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -640,15 +640,15 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask me anything about the library..."
-                  className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 transition-all duration-200 bg-white/50 backdrop-blur-sm ${
-                    isFullscreen ? 'text-base' : 'text-sm'
+                  className={`w-full px-3 py-2 md:px-4 md:py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 transition-all duration-200 bg-white/50 backdrop-blur-sm ${
+                    isFullscreen ? 'text-base' : 'text-sm md:text-base'
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   disabled={isLoading}
                 />
                 {inputMessage && (
                   <button
                     onClick={() => setInputMessage('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                    className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -659,15 +659,15 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               <button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-5 py-3 rounded-xl transition-all duration-200 disabled:cursor-not-allowed cursor-pointer hover:shadow-lg disabled:hover:shadow-none transform hover:scale-105 disabled:hover:scale-100 ${
+                className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-3 py-2 md:px-5 md:py-3 rounded-xl transition-all duration-200 disabled:cursor-not-allowed cursor-pointer hover:shadow-lg disabled:hover:shadow-none transform hover:scale-105 disabled:hover:scale-100 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 ${
                   isLoading ? 'animate-pulse' : ''
                 }`}
               >
                 {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4 md:w-5 md:h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
