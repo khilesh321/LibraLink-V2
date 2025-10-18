@@ -152,7 +152,26 @@ Before finalizing your recommendations, double-check that NONE of your recommend
  */
 export const generateBookCover = async (title, author, description = "") => {
   try {
-    const prompt = `Professional book cover for "${title}" by ${author || 'Unknown Author'}. High quality, modern design, readable text, attractive colors.`;
+    const prompt = `Create a professional, visually appealing book cover for:
+
+Title: "${title}"
+Author: ${author || 'Unknown Author'}
+${description ? `Description: ${description}` : ''}
+
+Requirements:
+- Modern, clean design with excellent typography
+- Title should be prominently displayed and highly readable
+- Author name should be clearly visible but not overpowering the title
+- Use a color scheme that reflects the book's genre/theme
+- Include subtle design elements that hint at the book's content
+- High contrast for readability
+- Professional quality suitable for a library or bookstore
+- Avoid cluttered layouts - keep it elegant and sophisticated
+- Ensure text is crisp and well-spaced
+- Background should complement rather than compete with the text
+${description ? '- Incorporate visual elements that relate to the book\'s themes or content' : ''}
+
+The cover should look like a published book that readers would be drawn to pick up.`;
 
     // Use fetch directly to ensure proper A4F API integration
     const response = await fetch('https://api.a4f.co/v1/images/generations', {
@@ -162,7 +181,7 @@ export const generateBookCover = async (title, author, description = "") => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "provider-4/imagen-4",
+        model: "provider-4/qwen-image",
         prompt: prompt,
         n: 1,
         size: "1024x1792", // Try different aspect ratio that might be supported by imagen
