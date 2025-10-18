@@ -15,6 +15,8 @@ export default function Resources() {
   const [downloadingId, setDownloadingId] = useState(null);
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const { role } = useUserRole();
 
   useEffect(() => {
@@ -205,6 +207,17 @@ export default function Resources() {
     return matchesSearch && matchesSize;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredPdfs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPdfs = filteredPdfs.slice(startIndex, endIndex);
+
+  // Reset to first page when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sizeFilter]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -334,6 +347,59 @@ export default function Resources() {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center mt-8 space-x-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+
+            <div className="flex space-x-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition duration-200 ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 flex items-center gap-2"
+            >
+              Next
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Page Info */}
+        {filteredPdfs.length > itemsPerPage && (
+          <div className="text-center mt-4 text-sm text-gray-600">
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredPdfs.length)} of {filteredPdfs.length} resources
+            {searchQuery && ` matching "${searchQuery}"`}
+            {searchQuery && sizeFilter !== "all" && " and"}
+            {sizeFilter !== "all" && ` ${sizeFilter === "small" ? "< 5MB" : sizeFilter === "medium" ? "5-20MB" : "> 20MB"}`}
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -377,7 +443,7 @@ export default function Resources() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredPdfs.map((pdf) => (
+            {paginatedPdfs.map((pdf) => (
               <div
                 key={pdf.id}
                 className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[72.5vh] duration-300"
