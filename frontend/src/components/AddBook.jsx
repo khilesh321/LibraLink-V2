@@ -3,6 +3,7 @@ import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
 import { generateBookDescription } from "../utils/geminiUtils";
+import BookCoverGenerator from "./BookCoverGenerator";
 
 export default function AddBook() {
   const { role, loading: roleLoading } = useUserRole();
@@ -14,6 +15,8 @@ export default function AddBook() {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [showCoverGenerator, setShowCoverGenerator] = useState(false);
+  const [generatedCoverUrl, setGeneratedCoverUrl] = useState(null);
 
   // Check if user has permission
   if (!roleLoading && (!role || (role !== "admin" && role !== "librarian"))) {
@@ -65,6 +68,18 @@ export default function AddBook() {
     return publicUrl;
   };
 
+  const uploadGeneratedCover = async (dataUrl) => {
+    // Convert base64 data URL to blob
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+
+    // Create a File object from the blob
+    const fileName = `generated-cover-${Date.now()}.png`;
+    const file = new File([blob], fileName, { type: 'image/png' });
+
+    return await uploadImage(file);
+  };
+
   const handleGenerateDescription = async () => {
     if (!title.trim()) {
       toast.warning("Please enter a book title first");
@@ -91,6 +106,17 @@ export default function AddBook() {
     }
   };
 
+  const handleCoverGenerated = (coverUrl) => {
+    // This function will be called when a cover is successfully generated
+    // For now, it handles the case where image generation works
+    if (coverUrl) {
+      setGeneratedCoverUrl(coverUrl);
+      setPreviewUrl(coverUrl);
+      setShowCoverGenerator(false);
+      toast.success("Cover generated and applied!");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -102,8 +128,11 @@ export default function AddBook() {
     try {
       let coverImageUrl = null;
 
+      // Upload image from file input or generated cover
       if (coverImage) {
         coverImageUrl = await uploadImage(coverImage);
+      } else if (generatedCoverUrl) {
+        coverImageUrl = await uploadGeneratedCover(generatedCoverUrl);
       }
 
       const {
@@ -131,12 +160,12 @@ export default function AddBook() {
       setCount(1);
       setCoverImage(null);
       setPreviewUrl(null);
+      setGeneratedCoverUrl(null);
 
       // Reset file input
       const fileInput = document.getElementById("cover-image");
       if (fileInput) fileInput.value = "";
     } catch (error) {
-      console.error("Error adding book:", error);
       toast.error("Failed to add book: " + error.message);
     } finally {
       setUploading(false);
@@ -266,12 +295,22 @@ export default function AddBook() {
               </div>
 
               <div>
-                <label
-                  htmlFor="cover-image"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Cover Image
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    htmlFor="cover-image"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Cover Image
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowCoverGenerator(true)}
+                    disabled={!title.trim() || !author.trim()}
+                    className="text-sm bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-3 py-1 rounded-md transition duration-300 disabled:cursor-not-allowed"
+                  >
+                    Generate Cover
+                  </button>
+                </div>
                 <input
                   type="file"
                   id="cover-image"
@@ -280,7 +319,7 @@ export default function AddBook() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Optional: Upload a cover image (JPG, PNG, etc.)
+                  Optional: Upload a cover image or generate one with AI
                 </p>
               </div>
 
@@ -310,6 +349,35 @@ export default function AddBook() {
           </div>
         </div>
       </div>
+
+      {/* Cover Generator Modal */}
+      {showCoverGenerator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Generate Book Cover
+              </h2>
+              <button
+                onClick={() => setShowCoverGenerator(false)}
+                className="text-gray-400 hover:text-gray-600 transition duration-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+              <BookCoverGenerator
+                initialTitle={title}
+                initialAuthor={author}
+                onCoverGenerated={handleCoverGenerated}
+                isModal={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

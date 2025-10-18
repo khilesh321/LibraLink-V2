@@ -28,7 +28,6 @@ Make it engaging and suitable for a library catalog. Do not use any markdown for
     const response = await result.response;
     return response.text().trim();
   } catch (error) {
-    console.error("Error generating book description:", error);
     throw new Error("Failed to generate description. Please try again.");
   }
 };
@@ -107,12 +106,89 @@ Only return the JSON array, no additional text.`;
       const recommendations = JSON.parse(cleanedText);
       return recommendations;
     } catch (parseError) {
-      console.error("Error parsing AI response:", parseError);
-      console.error("Raw response:", text);
       throw new Error("Failed to parse AI recommendations. Please try again.");
     }
   } catch (error) {
-    console.error("Error generating book recommendations:", error);
     throw new Error("Failed to generate recommendations. Please try again.");
+  }
+};
+
+/**
+ * Generate a book cover image using A4F API directly
+ *
+ * Uses Flux.1-schnell model for high-quality image generation with better quotas than Gemini free tier.
+ *
+ * @param {string} title - Book title
+ * @param {string} author - Book author
+ * @param {string} description - Optional cover description
+ * @returns {Promise<string>} Base64 encoded image data
+ */
+export const generateBookCover = async (title, author, description = "") => {
+  try {
+    const prompt = `Professional book cover for "${title}" by ${author || 'Unknown Author'}. High quality, modern design, readable text, attractive colors.`;
+
+    // Use fetch directly to ensure proper A4F API integration
+    const response = await fetch('https://api.a4f.co/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_A4F_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: "provider-4/imagen-4",
+        prompt: prompt,
+        n: 1,
+        size: "1024x1792", // Try different aspect ratio that might be supported by imagen
+        response_format: "url",
+        quality: "standard"
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`A4F API error: ${response.status} ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+
+    // Check if response has the expected structure
+    if (!data || !data.data || !Array.isArray(data.data) || data.data.length === 0) {
+      throw new Error(`API returned empty data array. This might indicate content filtering or model unavailability.`);
+    }
+
+    const imageUrl = data.data[0].url;
+
+    if (!imageUrl) {
+      throw new Error('No image URL returned from API');
+    }
+
+    // Fetch the image and convert to base64
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) {
+      throw new Error('Failed to fetch generated image');
+    }
+
+    const imageBlob = await imageResponse.blob();
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(imageBlob);
+    });
+
+  } catch (error) {
+    // Handle specific error types
+    if (error.message.includes("quota") || error.message.includes("429") || error.message.includes("Too Many Requests")) {
+      throw new Error(`API quota exceeded. You've reached the limit for image generation. Please wait a few minutes before trying again, or consider upgrading your plan for higher limits.`);
+    } else if (error.message.includes("model") || error.message.includes("not found") || error.message.includes("404")) {
+      throw new Error("Image generation model not available. Please check your API configuration.");
+    } else if (error.message.includes("permission") || error.message.includes("403") || error.message.includes("401")) {
+      throw new Error("API authentication failed. Please check your A4F API key.");
+    } else if (error.message.includes("billing")) {
+      throw new Error("Billing issue detected. Please check your A4F billing setup and ensure you have credits available.");
+    } else {
+      throw new Error("Failed to generate book cover. Please try again later.");
+    }
   }
 };
