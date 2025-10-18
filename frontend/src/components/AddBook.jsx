@@ -4,7 +4,7 @@ import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
 import { generateBookDescription } from "../utils/geminiUtils";
 import BookCoverGenerator from "./BookCoverGenerator";
-import { Loader2 } from 'lucide-react';
+import { Loader2, Wand2, Sparkles } from 'lucide-react';
 
 export default function AddBook() {
   const { role, loading: roleLoading } = useUserRole();
@@ -274,11 +274,14 @@ export default function AddBook() {
                     disabled={
                       generatingDescription || !title.trim() || !author.trim()
                     }
-                    className="text-sm bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-1 rounded-md transition duration-300 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer disabled:cursor-not-allowed"
                   >
-                    {generatingDescription
-                      ? "Generating..."
-                      : "Generate with AI"}
+                    {generatingDescription ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                    {generatingDescription ? "Generating..." : "AI Generate"}
                   </button>
                 </div>
                 <textarea
@@ -307,9 +310,10 @@ export default function AddBook() {
                     type="button"
                     onClick={() => setShowCoverGenerator(true)}
                     disabled={!title.trim() || !author.trim()}
-                    className="text-sm bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-3 py-1 rounded-md transition duration-300 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer disabled:cursor-not-allowed"
                   >
-                    Generate Cover
+                    <Wand2 className="w-4 h-4" />
+                    AI Generate
                   </button>
                 </div>
                 <input
@@ -358,7 +362,7 @@ export default function AddBook() {
 
       {/* Cover Generator Modal */}
       {showCoverGenerator && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
