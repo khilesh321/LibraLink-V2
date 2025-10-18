@@ -10,6 +10,8 @@ import {
   AlertCircle,
   CheckCircle,
   Download,
+  Search,
+  Filter,
 } from "lucide-react";
 import {
   generateTransactionsPDF,
@@ -24,6 +26,8 @@ export default function MyTransactions() {
   const [books, setBooks] = useState({});
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [actionFilter, setActionFilter] = useState("all");
 
   useEffect(() => {
     if (!roleLoading) {
@@ -187,8 +191,28 @@ export default function MyTransactions() {
     }
   };
 
+  // Filter transactions based on search and action filter
+  const filteredTransactions = transactions.filter((transaction) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      books[transaction.book_id]?.title
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      books[transaction.book_id]?.author
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      books[transaction.book_id]?.description
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesAction =
+      actionFilter === "all" || transaction.action === actionFilter;
+
+    return matchesSearch && matchesAction;
+  });
+
   // Calculate personal statistics
-  const overdueBooks = transactions.filter((transaction) => {
+  const overdueBooks = filteredTransactions.filter((transaction) => {
     if (transaction.action !== "issue" || !transaction.due_date) return false;
 
     const dueDate = new Date(transaction.due_date);
@@ -206,10 +230,10 @@ export default function MyTransactions() {
   }).length;
 
   const totalBooksBorrowed = new Set(
-    transactions.filter(t => t.action === "issue").map(t => t.book_id)
+    filteredTransactions.filter(t => t.action === "issue").map(t => t.book_id)
   ).size;
 
-  const currentlyBorrowed = transactions.filter((transaction) => {
+  const currentlyBorrowed = filteredTransactions.filter((transaction) => {
     if (transaction.action !== "issue") return false;
 
     // Check if this book has been returned
@@ -222,7 +246,7 @@ export default function MyTransactions() {
     return !hasReturn;
   }).length;
 
-  const totalFines = transactions.reduce((total, transaction) => {
+  const totalFines = filteredTransactions.reduce((total, transaction) => {
     return total + calculateLateFees(transaction);
   }, 0);
 
@@ -241,17 +265,17 @@ export default function MyTransactions() {
       data: [
         {
           name: "Issues",
-          value: transactions.filter((t) => t.action === "issue").length,
+          value: filteredTransactions.filter((t) => t.action === "issue").length,
           color: "#3B82F6"
         },
         {
           name: "Returns",
-          value: transactions.filter((t) => t.action === "return").length,
+          value: filteredTransactions.filter((t) => t.action === "return").length,
           color: "#10B981"
         },
         {
           name: "Renewals",
-          value: transactions.filter((t) => t.action === "renew").length,
+          value: filteredTransactions.filter((t) => t.action === "renew").length,
           color: "#F59E0B"
         },
       ].filter(item => item.value > 0),
@@ -259,7 +283,7 @@ export default function MyTransactions() {
     {
       type: 'bar',
       title: 'Monthly Activity (Last 6 Months)',
-      data: Object.values(transactions.reduce((acc, transaction) => {
+      data: Object.values(filteredTransactions.reduce((acc, transaction) => {
         const date = new Date(transaction.transaction_date);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
@@ -356,6 +380,45 @@ export default function MyTransactions() {
         />
       </motion.div>
 
+      {/* Filters */}
+      <motion.div
+        className="max-w-7xl mx-auto px-4 py-6"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        viewport={{ once: true }}
+      >
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search by book title, author, or description..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter className="w-5 h-5 text-gray-400" />
+              <select
+                value={actionFilter}
+                onChange={(e) => setActionFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Actions</option>
+                <option value="issue">Issues</option>
+                <option value="return">Returns</option>
+                <option value="renew">Renewals</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Content */}
       <motion.div
         className="max-w-7xl mx-auto px-4 py-8"
@@ -409,11 +472,42 @@ export default function MyTransactions() {
               </Link>
             </motion.div>
           </motion.div>
+        ) : filteredTransactions.length === 0 ? (
+          <motion.div
+            className="bg-white rounded-lg shadow-md p-6 sm:p-12 text-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            </motion.div>
+            <motion.h3
+              className="text-xl font-semibold text-gray-900 mb-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              No Matching Transactions
+            </motion.h3>
+            <motion.p
+              className="text-gray-600 mb-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+            >
+              No transactions match your current search and filter criteria. Try adjusting your filters.
+            </motion.p>
+          </motion.div>
         ) : (
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
-                Transaction History ({transactions.length})
+                Transaction History ({filteredTransactions.length} of {transactions.length})
               </h2>
             </div>
 
@@ -439,7 +533,7 @@ export default function MyTransactions() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {transactions.map((transaction, index) => (
+                  {filteredTransactions.map((transaction, index) => (
                     <motion.tr
                       key={index}
                       className="hover:bg-gray-50"
