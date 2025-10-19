@@ -41,6 +41,8 @@ SPECIAL COMMANDS YOU CAN HANDLE:
 4. TOPIC RECOMMENDATIONS: When users ask for "recommend books on [topic]" or "suggest books about [subject]", respond with: [BOOK_RECOMMENDATIONS_BY_TOPIC:topic]
 5. SIMILAR BOOKS: When users ask for "books similar to [book title]" or "recommend similar books", respond with: [BOOK_SIMILAR:book_title]
 6. BOOK DETAILS: When users ask for details about a specific book or want to borrow/view a book, respond with: [BOOK_DETAILS:book_title_or_id] where you can use either the book title or the book UUID. The system will handle finding the correct book.
+7. RESOURCE SEARCH: When users ask to "find resources about [topic]" or "search for [resource name]" or "find PDFs about [topic]", respond with: [RESOURCE_SEARCH:topic]
+8. RESOURCE DETAILS: When users ask for details about a specific resource or want to read/view a resource, respond with: [RESOURCE_DETAILS:resource_title_or_id] where you can use either the resource title or the resource UUID. The system will handle finding the correct resource.
 
 LIBRARY PROCESSES AND INSTRUCTIONS:
 When users ask about borrowing books:
@@ -110,6 +112,57 @@ Always be friendly, helpful, and knowledgeable about library operations. Remembe
     } catch (error) {
       console.error('Error searching books:', error);
       return [];
+    }
+  };
+
+  // Function to search resources by topic or title
+  const searchResources = async (query) => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .or(`name.ilike.%${query}%,description.ilike.%${query}%,author.ilike.%${query}%,filename.ilike.%${query}%`)
+        .limit(10);
+
+      if (error) throw error;
+
+      return data || [];
+    } catch (error) {
+      console.error('Error searching resources:', error);
+      return [];
+    }
+  };
+
+  // Function to get resource details by ID or title
+  const getResourceDetails = async (identifier) => {
+    try {
+      // Check if it's a UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      
+      let query;
+      if (uuidRegex.test(identifier)) {
+        // It's an ID
+        query = supabase
+          .from('documents')
+          .select('*')
+          .eq('id', identifier)
+          .single();
+      } else {
+        // It's a title, search for it
+        query = supabase
+          .from('documents')
+          .select('*')
+          .ilike('name', `%${identifier}%`)
+          .limit(1);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return data;
+    } catch (error) {
+      console.error('Error getting resource details:', error);
+      return null;
     }
   };
 
@@ -461,9 +514,69 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
             }
           }
         }
-      }
+      } else if (finalResponse.includes('[RESOURCE_SEARCH:')) {
+        const resourceSearchMatch = finalResponse.match(/\[RESOURCE_SEARCH:(.*?)\]/);
+        if (resourceSearchMatch) {
+          const topic = resourceSearchMatch[1].trim();
+          const resourceResults = await searchResources(topic);
 
-      // Update the final message
+          if (resourceResults.length === 0) {
+            finalResponse = `I'm sorry, but there are no resources currently available on "${topic}" in our library. Would you like me to search for a different topic or help you find resources in a related area?`;
+          } else {
+            finalResponse = `Here are some available resources on "${topic}":\n\n${resourceResults.map((resource, index) =>
+              `${index + 1}. **[${resource.name}](/resource/${resource.id})** by ${resource.author || 'Unknown'}\n   ${resource.description ? resource.description.substring(0, 100) + '...' : 'No description available'}`
+            ).join('\n\n')}\n\nWould you like me to help you access any of these resources?`;
+          }
+        }
+      } else if (finalResponse.includes('[RESOURCE_DETAILS:')) {
+        const resourceDetailsMatch = finalResponse.match(/\[RESOURCE_DETAILS:(.*?)\]/);
+        if (resourceDetailsMatch) {
+          const resourceIdentifier = resourceDetailsMatch[1].trim();
+          
+          // Check if it's a UUID (resource ID) or a title
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          let resourceId = resourceIdentifier;
+          
+          if (!uuidRegex.test(resourceIdentifier)) {
+            // It's a title, search for the resource
+            try {
+              const { data: resources, error } = await supabase
+                .from('documents')
+                .select('id, name, author')
+                .ilike('name', `%${resourceIdentifier}%`)
+                .limit(1);
+              
+              if (!error && resources && resources.length > 0) {
+                resourceId = resources[0].id;
+                finalResponse = `Here's the details for "${resources[0].name}" by ${resources[0].author || 'Unknown'}. [View Resource Details](/resource/${resourceId})`;
+              } else {
+                finalResponse = `I couldn't find a resource with that title. Try searching for resources with a similar topic instead.`;
+              }
+            } catch (error) {
+              console.error('Error searching for resource:', error);
+              finalResponse = `I couldn't find details for that resource. Please try a different search.`;
+            }
+          } else {
+            // It's a resource ID, fetch details
+            try {
+              const { data: resource, error } = await supabase
+                .from('documents')
+                .select('name, author')
+                .eq('id', resourceId)
+                .single();
+
+              if (!error && resource) {
+                finalResponse = `Here's the details for "${resource.name}" by ${resource.author || 'Unknown'}. [View Resource Details](/resource/${resourceId})`;
+              } else {
+                finalResponse = `I found the resource you're looking for. [View Resource Details](/resource/${resourceId})`;
+              }
+            } catch (error) {
+              console.error('Error fetching resource details:', error);
+              finalResponse = `Click here to view the resource details: [View Resource Details](/resource/${resourceId})`;
+            }
+          }
+        }
+      }
       setMessages(prev => prev.map(msg =>
         msg.id === aiMessageId
           ? { ...msg, text: finalResponse, isStreaming: false }
