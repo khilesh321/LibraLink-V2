@@ -38,23 +38,23 @@ export default function Home() {
   const features = [
     {
       icon: <BookOpen className="w-6 h-6 text-white" />,
-      title: "Digital Library",
-      desc: "Access thousands of books with advanced search, filtering, and instant availability checking.",
+      title: "AI-Powered Library",
+      desc: "Smart book discovery with AI-generated covers, intelligent recommendations, and advanced search across titles, authors, and descriptions.",
     },
     {
       icon: <QrCode className="w-6 h-6 text-white" />,
-      title: "QR Code Management",
-      desc: "Seamlessly issue and return books using QR codes from any device, anywhere, anytime.",
+      title: "Seamless QR Operations",
+      desc: "Instant book issuing and returns with QR code scanning, automated due date tracking, and real-time availability updates.",
     },
     {
       icon: <ClipboardList className="w-6 h-6 text-white" />,
-      title: "PDF Resources",
-      desc: "Upload and manage PDF documents with cover images and interactive FlipHTML5 reading experience.",
+      title: "Comprehensive Management",
+      desc: "Complete admin dashboard with role-based access control, user management, transaction tracking, and detailed analytics.",
     },
     {
       icon: <ShieldCheck className="w-6 h-6 text-white" />,
-      title: "Smart Analytics",
-      desc: "Comprehensive admin dashboard with user management, transaction tracking, and detailed reports.",
+      title: "Smart Resource Hub",
+      desc: "Upload and organize PDF resources with AI-generated covers, interactive reading experiences, and advanced pagination.",
     },
   ];
 
@@ -139,9 +139,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 1.0 }}
                 >
-                  Experience the future of library management with QR-based
-                  automation, instant book discovery, and seamless borrowing –
-                  all in one powerful platform.
+                  AI-powered library management with seamless QR operations, comprehensive admin dashboards, and intelligent resource handling.
                 </motion.p>
               </div>
 
@@ -324,7 +322,7 @@ export default function Home() {
                       transition={{ type: "spring", stiffness: 400 }}
                     >
                       <Link
-                        to="/admin"
+                        to="/admin/roles"
                         className="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-all duration-200 relative overflow-hidden group"
                       >
                         <motion.div
@@ -337,7 +335,7 @@ export default function Home() {
                           whileHover={{ x: 2 }}
                           transition={{ type: "spring", stiffness: 400 }}
                         >
-                          Dashboard
+                          Manage Roles
                         </motion.span>
                       </Link>
                     </motion.div>
@@ -497,11 +495,10 @@ export default function Home() {
                   1
                 </div>
                 <h4 className="text-xl font-semibold text-gray-900">
-                  Search & Discover
+                  AI-Powered Discovery
                 </h4>
                 <p className="text-gray-600">
-                  Find your desired books instantly with our smart search and
-                  filtering system
+                  Explore our digital collection with AI-generated covers, intelligent search, and personalized recommendations
                 </p>
               </motion.div>
 
@@ -515,11 +512,10 @@ export default function Home() {
                   2
                 </div>
                 <h4 className="text-xl font-semibold text-gray-900">
-                  Scan QR Code
+                  Instant QR Operations
                 </h4>
                 <p className="text-gray-600">
-                  Simply scan the book's QR code to issue or return books in
-                  seconds
+                  Borrow and return books instantly with QR code scanning, automated tracking, and real-time availability
                 </p>
               </motion.div>
 
@@ -533,11 +529,10 @@ export default function Home() {
                   3
                 </div>
                 <h4 className="text-xl font-semibold text-gray-900">
-                  Manage & Track
+                  Smart Administration
                 </h4>
                 <p className="text-gray-600">
-                  Keep track of due dates, renewals, and late fees from your
-                  dashboard
+                  Manage users, roles, and analytics with comprehensive dashboards, transaction tracking, and automated reports
                 </p>
               </motion.div>
             </div>
