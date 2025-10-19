@@ -506,15 +506,15 @@ export default function Books() {
                   key={book.id}
                   className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[70.5vh] duration-300"
                 >
-                  <div className="bg-gray-200">
+                  <div className="bg-gray-200 h-64 md:h-auto">
                     {book.cover_image_url ? (
                       <img
                         src={book.cover_image_url}
                         alt={book.title}
-                        className="w-full h-full md:absolute z-10 md:group-hover:scale-x-0 mx-auto transition duration-300"
+                        className="w-full h-full max-sm:object-cover md:absolute z-10 md:group-hover:scale-x-0 mx-auto transition duration-300"
                       />
                     ) : (
-                      <div className="w-full h-54 bg-gray-300 flex items-center justify-center">
+                      <div className="w-full h-full bg-gray-300 flex items-center justify-center">
                         <span className="text-gray-500 text-sm">No Cover</span>
                       </div>
                     )}

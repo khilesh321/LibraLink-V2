@@ -448,12 +448,12 @@ export default function Resources() {
                 key={pdf.id}
                 className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[72.5vh] duration-300"
               >
-                <div className="w-full bg-gray-200 overflow-hidden">
+                <div className="w-full bg-gray-200 overflow-hidden h-64 md:h-auto">
                   {pdf.cover_image_url ? (
                     <img
                       src={pdf.cover_image_url}
                       alt={pdf.name}
-                      className="w-full h-full md:absolute z-10 md:group-hover:scale-x-0 mx-auto object-fit transition duration-300"
+                      className="w-full h-full md:absolute z-10 md:group-hover:scale-x-0 mx-auto max-sm:object-cover transition duration-300"
                     />
                   ) : (
                     <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
