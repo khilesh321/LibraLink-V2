@@ -42,7 +42,11 @@ SPECIAL COMMANDS YOU CAN HANDLE:
 5. SIMILAR BOOKS: When users ask for "books similar to [book title]" or "recommend similar books", respond with: [BOOK_SIMILAR:book_title]
 6. BOOK DETAILS: When users ask for details about a specific book or want to borrow/view a book, respond with: [BOOK_DETAILS:book_title_or_id] where you can use either the book title or the book UUID. The system will handle finding the correct book.
 7. RESOURCE SEARCH: When users ask to "find resources about [topic]" or "search for [resource name]" or "find PDFs about [topic]", respond with: [RESOURCE_SEARCH:topic]
-8. RESOURCE DETAILS: When users ask for details about a specific resource or want to read/view a resource, respond with: [RESOURCE_DETAILS:resource_title_or_id] where you can use either the resource title or the resource UUID. The system will handle finding the correct resource.
+8. RESOURCE SUMMARY: When users ask to "summarize [resource title]" or "give me a summary of [resource]", respond with: [RESOURCE_SUMMARY:resource_title]
+9. RESOURCE RECOMMENDATIONS: When users ask for "resource recommendations" or "suggest resources" without a specific topic, respond with: [RESOURCE_RECOMMENDATIONS]
+10. RESOURCE TOPIC RECOMMENDATIONS: When users ask for "recommend resources on [topic]" or "suggest resources about [subject]", respond with: [RESOURCE_RECOMMENDATIONS_BY_TOPIC:topic]
+11. SIMILAR RESOURCES: When users ask for "resources similar to [resource title]" or "recommend similar resources", respond with: [RESOURCE_SIMILAR:resource_title]
+12. RESOURCE DETAILS: When users ask for details about a specific resource or want to read/view a resource, respond with: [RESOURCE_DETAILS:resource_title_or_id] where you can use either the resource title or the resource UUID. The system will handle finding the correct resource.
 
 LIBRARY PROCESSES AND INSTRUCTIONS:
 When users ask about borrowing books:
@@ -67,8 +71,13 @@ When users ask about reading books:
 - For digital resources (PDFs): Available in the Resources section with options to "Read Online" or "Read as Flipbook" for interactive experience
 - Digital resources can be accessed without borrowing
 
-Always be friendly, helpful, and knowledgeable about library operations. Remember user information and preferences throughout the conversation to provide personalized assistance. If you don't know something specific about the library's current inventory or policies, acknowledge this and suggest asking a librarian for the most up-to-date information.`
-  });
+Always be friendly, helpful, and knowledgeable about library operations. Remember user information and preferences throughout the conversation to provide personalized assistance. If you don't know something specific about the library's current inventory or policies, acknowledge this and suggest asking a librarian for the most up-to-date information.
+
+CONTENT FILTERING RULES:
+- NEVER recommend or display books/resources with titles containing words like: "test", "demo", "sample", "example", "my transactions", "admin", "system", "debug", "placeholder", "temporary", or similar internal/testing terms
+- Only recommend legitimate, user-appropriate books and resources from the actual library collection
+- If a search returns only filtered results, inform the user that no appropriate materials were found and suggest alternative search terms`});
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -126,7 +135,9 @@ Always be friendly, helpful, and knowledgeable about library operations. Remembe
 
       if (error) throw error;
 
-      return data || [];
+      // Filter out inappropriate resources
+      const filteredData = filterInappropriateResources(data || []);
+      return filteredData;
     } catch (error) {
       console.error('Error searching resources:', error);
       return [];
@@ -163,6 +174,175 @@ Always be friendly, helpful, and knowledgeable about library operations. Remembe
     } catch (error) {
       console.error('Error getting resource details:', error);
       return null;
+    }
+  };
+
+  // Function to generate resource summary
+  const generateResourceSummary = async (resourceTitle) => {
+    try {
+      const summaryModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const prompt = `Generate a concise and engaging summary of the resource "${resourceTitle}". 
+
+Please provide:
+1. A brief overview (2-3 sentences) of what this resource covers
+2. Main topics or subjects discussed
+3. Who would benefit from reading this resource
+4. Key takeaways or important concepts covered
+
+Keep the total summary under 200 words. Make it informative and enticing for someone considering reading this resource.`;
+
+      const result = await summaryModel.generateContent(prompt);
+      const response = await result.response;
+      return response.text().trim();
+    } catch (error) {
+      console.error('Error generating resource summary:', error);
+      return 'Sorry, I couldn\'t generate a summary for this resource right now.';
+    }
+  };
+
+  // Function to find similar resources using AI
+  const findSimilarResources = async (resourceTitle) => {
+    try {
+      // First, get all resources from the database
+      const { data: allResources, error } = await supabase
+        .from('documents')
+        .select('*')
+        .limit(100); // Get more resources for better matching
+
+      if (error) throw error;
+
+      if (!allResources || allResources.length === 0) {
+        return `I couldn't find any similar resources to "${resourceTitle}" in our library. Would you like me to search for resources on a related topic instead?`;
+      }
+
+      // Filter out inappropriate resources
+      const filteredResources = filterInappropriateResources(allResources);
+
+      if (filteredResources.length === 0) {
+        return `I couldn't find any appropriate similar resources to "${resourceTitle}" in our library. Would you like me to search for resources on a related topic instead?`;
+      }
+
+      // Use AI to find semantically similar resources
+      const similarResourcesModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      
+      const resourcesText = filteredResources
+        .slice(0, 50) // Limit to 50 resources for the prompt
+        .map(resource => 
+          `"${resource.name}" by ${resource.author || 'Unknown'}: ${resource.description || 'No description'}`
+        )
+        .join('\n');
+
+      const prompt = `Given the resource "${resourceTitle}", find the 5 most similar resources from this list based on themes, topics, subject matter, or content type. Consider resources that would appeal to readers of "${resourceTitle}".
+
+Resources in our library:
+${resourcesText}
+
+Return only a JSON array of the most similar resource titles (exactly as they appear in the list above). Return at most 5 resources. If no similar resources are found, return an empty array.
+
+Example response: ["Resource Title 1", "Resource Title 2", "Resource Title 3"]`;
+
+      const result = await similarResourcesModel.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text().trim();
+
+      // Clean up the response
+      const cleanedText = text
+        .replace(/```json\s*/g, "")
+        .replace(/```\s*$/g, "")
+        .trim();
+
+      let similarTitles;
+      try {
+        similarTitles = JSON.parse(cleanedText);
+      } catch (parseError) {
+        console.error("Error parsing AI response:", parseError);
+        // Fallback: try to extract resource titles from the text
+        const titleMatches = text.match(/"([^"]+)"/g);
+        similarTitles = titleMatches ? titleMatches.map(match => match.slice(1, -1)) : [];
+      }
+
+      // Find the actual resource objects
+      const similarResources = similarTitles
+        .map(title => filteredResources.find(resource => resource.name === title))
+        .filter(Boolean)
+        .slice(0, 5);
+
+      if (similarResources.length === 0) {
+        return `I couldn't find any similar resources to "${resourceTitle}" in our library. Would you like me to search for resources on a related topic instead?`;
+      }
+
+      return `Here are some resources similar to "${resourceTitle}" that are currently available:\n\n${similarResources.map((resource, index) =>
+        `${index + 1}. **[${resource.name}](/resource/${resource.id})** by ${resource.author || 'Unknown'}\n   ${resource.description ? resource.description.substring(0, 100) + '...' : 'No description available'}`
+      ).join('\n\n')}\n\nWould you like me to help you access any of these resources?`;
+    } catch (error) {
+      console.error('Error finding similar resources:', error);
+      return [];
+    }
+  };
+
+  // Function to filter out inappropriate resources
+  const filterInappropriateResources = (resources) => {
+    const inappropriateKeywords = [
+      'test', 'demo', 'sample', 'example', 'my transactions', 
+      'admin', 'system', 'debug', 'placeholder', 'temporary',
+      'flipbook demo', 'mytransactions'
+    ];
+    
+    return resources.filter(resource => {
+      const title = resource.name?.toLowerCase() || '';
+      return !inappropriateKeywords.some(keyword => 
+        title.includes(keyword.toLowerCase())
+      );
+    });
+  };
+
+  // Function to get resource recommendations
+  const getResourceRecommendations = async (topic = null) => {
+    try {
+      if (topic) {
+        // Topic-based recommendations
+        const searchResults = await searchResources(topic);
+        
+        // Filter out inappropriate resources
+        const filteredResults = filterInappropriateResources(searchResults);
+        
+        if (filteredResults.length === 0) {
+          return { type: 'topic', available: false, resources: [] };
+        }
+
+        return { 
+          type: 'topic', 
+          available: filteredResults.length > 0, 
+          resources: filteredResults.slice(0, 5),
+          topic: topic
+        };
+      }
+
+      // General recommendations - get popular resources
+      const { data: topResources, error } = await supabase
+        .from('documents')
+        .select('*')
+        .limit(10);
+
+      if (error) throw error;
+
+      // Filter out inappropriate resources
+      const filteredResources = filterInappropriateResources(topResources || []);
+
+      return { 
+        type: 'general', 
+        resources: filteredResources.slice(0, 5).map(resource => ({
+          id: resource.id,
+          name: resource.name,
+          author: resource.author,
+          description: resource.description,
+          reason: 'Popular resource in our library collection',
+          relevanceScore: 7
+        })) || []
+      };
+    } catch (error) {
+      console.error('Error getting resource recommendations:', error);
+      return { type: topic ? 'topic' : 'general', resources: [] };
     }
   };
 
@@ -575,6 +755,46 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               finalResponse = `Click here to view the resource details: [View Resource Details](/resource/${resourceId})`;
             }
           }
+        }
+      } else if (finalResponse.includes('[RESOURCE_SUMMARY:')) {
+        const resourceSummaryMatch = finalResponse.match(/\[RESOURCE_SUMMARY:(.*?)\]/);
+        if (resourceSummaryMatch) {
+          const resourceIdentifier = resourceSummaryMatch[1].trim();
+          const summary = await generateResourceSummary(resourceIdentifier);
+          finalResponse = summary;
+        }
+      } else if (finalResponse.includes('[RESOURCE_RECOMMENDATIONS_BY_TOPIC:')) {
+        const topicMatch = finalResponse.match(/\[RESOURCE_RECOMMENDATIONS_BY_TOPIC:(.*?)\]/);
+        if (topicMatch) {
+          const topic = topicMatch[1].trim();
+          const recommendations = await getResourceRecommendations(topic);
+
+          if (recommendations.type === 'topic') {
+            if (!recommendations.available || recommendations.resources.length === 0) {
+              finalResponse = `I'm sorry, but there are no resources currently available on "${topic}" in our library. Would you like me to search for a different topic or help you find resources in a related area?`;
+            } else {
+              finalResponse = `Here are some available resources on "${topic}" that I recommend:\n\n${recommendations.resources.map((resource, index) =>
+                `${index + 1}. **[${resource.name}](/resource/${resource.id})** by ${resource.author || 'Unknown'}\n   ${resource.description ? resource.description.substring(0, 100) + '...' : 'No description available'}`
+              ).join('\n\n')}\n\nWould you like me to help you access any of these resources?`;
+            }
+          }
+        }
+      } else if (finalResponse.includes('[RESOURCE_RECOMMENDATIONS]')) {
+        const recommendations = await getResourceRecommendations();
+
+        if (recommendations.type === 'general' && recommendations.resources.length > 0) {
+          finalResponse = `Here are some recommended resources from our library collection:\n\n${recommendations.resources.map((rec, index) =>
+            `${index + 1}. **[${rec.name}](/resource/${rec.id})** by ${rec.author || 'Unknown'}\n   *Why you'll like it:* ${rec.reason}\n   *Relevance:* ${rec.relevanceScore}/10`
+          ).join('\n\n')}\n\nWould you like me to help you access any of these resources?`;
+        } else {
+          finalResponse = `I'd be happy to recommend some resources! Here are some popular resources from our collection. Try accessing a few resources first, and I can give you more personalized recommendations next time!`;
+        }
+      } else if (finalResponse.includes('[RESOURCE_SIMILAR:')) {
+        const similarMatch = finalResponse.match(/\[RESOURCE_SIMILAR:(.*?)\]/);
+        if (similarMatch) {
+          const resourceTitle = similarMatch[1].trim();
+          const similarResources = await findSimilarResources(resourceTitle);
+          finalResponse = similarResources;
         }
       }
       setMessages(prev => prev.map(msg =>
