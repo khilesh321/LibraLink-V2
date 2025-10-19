@@ -212,6 +212,11 @@ Requirements:
 - Background should complement rather than compete with the text
 ${description ? '- Incorporate visual elements that relate to the book\'s themes or content' : ''}
 
+IMPORTANT RESTRICTIONS:
+- DO NOT include any animals, birds, penguins, or living creatures
+- Focus on abstract patterns, geometric shapes, textures, and typography
+- Use only abstract design elements, symbols, and motifs
+
 The cover should look like a published book that readers would be drawn to pick up.`;
 
     // Use fetch directly to ensure proper A4F API integration
