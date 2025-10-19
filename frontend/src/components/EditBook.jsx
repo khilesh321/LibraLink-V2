@@ -3,6 +3,9 @@ import { useParams } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
+import BookCoverGenerator from "./BookCoverGenerator";
+import { generateBookDescription } from "../utils/geminiUtils";
+import { Wand2 } from "lucide-react";
 
 export default function EditBook() {
   const { role, loading: roleLoading } = useUserRole();
@@ -16,6 +19,9 @@ export default function EditBook() {
   const [loading, setLoading] = useState(true);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [existingCoverUrl, setExistingCoverUrl] = useState(null);
+  const [showCoverGenerator, setShowCoverGenerator] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [applyingCover, setApplyingCover] = useState(false);
 
   // Check if user has permission
   if (!roleLoading && (!role || (role !== "admin" && role !== "librarian"))) {
@@ -95,6 +101,56 @@ export default function EditBook() {
     } = supabase.storage.from("images").getPublicUrl(filePath);
 
     return publicUrl;
+  };
+
+  const handleGenerateDescription = async () => {
+    if (!title.trim()) {
+      toast.warning("Please enter a book title first");
+      return;
+    }
+
+    setGeneratingDescription(true);
+    try {
+      const generatedDescription = await generateBookDescription(
+        title.trim(),
+        author.trim()
+      );
+      setDescription(generatedDescription);
+      toast.success("Description generated successfully!");
+    } catch (error) {
+      toast.error("Failed to generate description. Please try again.");
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
+
+  const handleCoverGenerated = async (generatedImageDataUrl) => {
+    setApplyingCover(true);
+    try {
+      // Convert base64 data URL to blob
+      const response = await fetch(generatedImageDataUrl);
+      const blob = await response.blob();
+
+      // Create a file from the blob
+      const fileName = `generated-cover-${Date.now()}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      // Upload the generated cover
+      const coverUrl = await uploadImage(file);
+
+      // Update the cover preview and state
+      setCoverImage(file);
+      setPreviewUrl(coverUrl);
+      setExistingCoverUrl(coverUrl);
+
+      setShowCoverGenerator(false);
+      toast.success("Cover generated and applied successfully!");
+    } catch (error) {
+      console.error("Error applying generated cover:", error);
+      toast.error("Failed to apply generated cover. Please try again.");
+    } finally {
+      setApplyingCover(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -223,12 +279,23 @@ export default function EditBook() {
               </div>
 
               <div>
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Description
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Description
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleGenerateDescription}
+                    disabled={generatingDescription || !title.trim()}
+                    className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
+                  >
+                    <Wand2 className="w-4 h-4" />
+                    {generatingDescription ? "Generating..." : "AI Generate"}
+                  </button>
+                </div>
                 <textarea
                   id="description"
                   value={description}
@@ -243,12 +310,22 @@ export default function EditBook() {
               </div>
 
               <div>
-                <label
-                  htmlFor="cover-image"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Cover Image
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    htmlFor="cover-image"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Cover Image
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowCoverGenerator(true)}
+                    className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
+                  >
+                    <Wand2 className="w-4 h-4" />
+                    Generate Cover
+                  </button>
+                </div>
                 <input
                   type="file"
                   id="cover-image"
@@ -257,7 +334,7 @@ export default function EditBook() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Optional: Upload a new cover image (JPG, PNG, etc.)
+                  Optional: Upload a new cover image (JPG, PNG, etc.) or use AI generation
                 </p>
               </div>
 
@@ -287,6 +364,34 @@ export default function EditBook() {
           </div>
         </div>
       </div>
+
+      {/* Book Cover Generator Modal */}
+      {showCoverGenerator && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-2xl font-bold text-gray-900">Generate Book Cover</h2>
+              <button
+                onClick={() => setShowCoverGenerator(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+              <BookCoverGenerator
+                initialTitle={title}
+                initialAuthor={author}
+                onCoverGenerated={handleCoverGenerated}
+                isModal={true}
+                applyingCover={applyingCover}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

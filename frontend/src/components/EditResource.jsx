@@ -21,6 +21,7 @@ export default function EditResource() {
   const [message, setMessage] = useState("");
   const [showCoverGenerator, setShowCoverGenerator] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [applyingCover, setApplyingCover] = useState(false);
 
   // Check if user has permission
   if (!roleLoading && (!role || !["librarian", "admin"].includes(role))) {
@@ -127,6 +128,7 @@ export default function EditResource() {
   };
 
   const handleCoverGenerated = async (generatedImageDataUrl) => {
+    setApplyingCover(true);
     try {
       // Convert base64 data URL to blob
       const response = await fetch(generatedImageDataUrl);
@@ -149,6 +151,8 @@ export default function EditResource() {
     } catch (error) {
       console.error("Error applying generated cover:", error);
       toast.error("Failed to apply generated cover. Please try again.");
+    } finally {
+      setApplyingCover(false);
     }
   };
 
@@ -270,6 +274,7 @@ export default function EditResource() {
                     Description (Optional)
                   </label>
                   <button
+                    type="button"
                     onClick={handleGenerateDescription}
                     disabled={generatingDescription || !documentName.trim()}
                     className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
@@ -301,6 +306,7 @@ export default function EditResource() {
                     Cover Image (Optional)
                   </label>
                   <button
+                    type="button"
                     onClick={() => setShowCoverGenerator(true)}
                     className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
                   >
@@ -381,6 +387,7 @@ export default function EditResource() {
                 initialAuthor=""
                 onCoverGenerated={handleCoverGenerated}
                 isModal={true}
+                applyingCover={applyingCover}
               />
             </div>
           </div>
