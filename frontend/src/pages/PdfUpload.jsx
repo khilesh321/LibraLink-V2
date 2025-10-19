@@ -175,6 +175,7 @@ Description:`;
         .insert([
           {
             name: documentName.trim(),
+            author: author.trim() || null,
             filename: fileName,
             filepath: filePath,
             size: file.size,

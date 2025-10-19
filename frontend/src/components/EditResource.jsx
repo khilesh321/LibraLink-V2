@@ -3,18 +3,24 @@ import { useParams } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
 import { toast } from "react-toastify";
+import BookCoverGenerator from "./BookCoverGenerator";
+import { generateBookDescription } from "../utils/geminiUtils";
+import { Wand2 } from "lucide-react";
 
 export default function EditResource() {
   const { role, loading: roleLoading } = useUserRole();
   const { id } = useParams();
   const [documentName, setDocumentName] = useState("");
   const [flipbookUrl, setFlipbookUrl] = useState("");
+  const [description, setDescription] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
   const [existingCoverUrl, setExistingCoverUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [showCoverGenerator, setShowCoverGenerator] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
 
   // Check if user has permission
   if (!roleLoading && (!role || !["librarian", "admin"].includes(role))) {
@@ -56,6 +62,7 @@ export default function EditResource() {
       if (data) {
         setDocumentName(data.name || "");
         setFlipbookUrl(data.flipbook_url || "");
+        setDescription(data.description || "");
         setExistingCoverUrl(data.cover_image_url);
         setCoverPreviewUrl(data.cover_image_url);
       }
@@ -98,6 +105,53 @@ export default function EditResource() {
     return publicUrl;
   };
 
+  const handleGenerateDescription = async () => {
+    if (!documentName.trim()) {
+      toast.warning("Please enter a document name first");
+      return;
+    }
+
+    setGeneratingDescription(true);
+    try {
+      const generatedDescription = await generateBookDescription(
+        documentName.trim(),
+        "" // Empty author for documents
+      );
+      setDescription(generatedDescription);
+      toast.success("Description generated successfully!");
+    } catch (error) {
+      toast.error("Failed to generate description. Please try again.");
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
+
+  const handleCoverGenerated = async (generatedImageDataUrl) => {
+    try {
+      // Convert base64 data URL to blob
+      const response = await fetch(generatedImageDataUrl);
+      const blob = await response.blob();
+
+      // Create a file from the blob
+      const fileName = `generated-cover-${Date.now()}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      // Upload the generated cover
+      const coverUrl = await uploadCoverImage(file);
+
+      // Update the cover preview and state
+      setCoverImage(file);
+      setCoverPreviewUrl(coverUrl);
+      setExistingCoverUrl(coverUrl);
+
+      setShowCoverGenerator(false);
+      toast.success("Cover generated and applied successfully!");
+    } catch (error) {
+      console.error("Error applying generated cover:", error);
+      toast.error("Failed to apply generated cover. Please try again.");
+    }
+  };
+
   const handleUpdate = async () => {
     if (!documentName.trim()) {
       setMessage("Please enter a document name.");
@@ -122,6 +176,7 @@ export default function EditResource() {
           name: documentName.trim(),
           flipbook_url: flipbookUrl.trim() || null,
           cover_image_url: coverImageUrl,
+          description: description.trim() || null,
         })
         .eq("id", id);
 
@@ -207,12 +262,52 @@ export default function EditResource() {
               </div>
 
               <div>
-                <label
-                  htmlFor="cover-input"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Cover Image (Optional)
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Description (Optional)
+                  </label>
+                  <button
+                    onClick={handleGenerateDescription}
+                    disabled={generatingDescription || !documentName.trim()}
+                    className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
+                  >
+                    <Wand2 className="w-4 h-4" />
+                    {generatingDescription ? "Generating..." : "AI Generate"}
+                  </button>
+                </div>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter document description"
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={uploading}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Provide a description of the document content
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    htmlFor="cover-input"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Cover Image (Optional)
+                  </label>
+                  <button
+                    onClick={() => setShowCoverGenerator(true)}
+                    className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
+                  >
+                    <Wand2 className="w-4 h-4" />
+                    Generate Cover
+                  </button>
+                </div>
                 <input
                   id="cover-input"
                   type="file"
@@ -222,7 +317,7 @@ export default function EditResource() {
                   disabled={uploading}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Upload a new cover image for the document (JPG, PNG, etc.)
+                  Upload a new cover image for the document (JPG, PNG, etc.) or use AI generation
                 </p>
               </div>
 
@@ -264,6 +359,33 @@ export default function EditResource() {
           </div>
         </div>
       </div>
+
+      {/* Book Cover Generator Modal */}
+      {showCoverGenerator && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-2xl font-bold text-gray-900">Generate Book Cover</h2>
+              <button
+                onClick={() => setShowCoverGenerator(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+              <BookCoverGenerator
+                initialTitle={documentName}
+                initialAuthor=""
+                onCoverGenerated={handleCoverGenerated}
+                isModal={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
