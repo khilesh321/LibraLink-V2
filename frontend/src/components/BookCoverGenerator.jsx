@@ -10,6 +10,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("provider-4/qwen-image");
 
   const handleGenerateCover = async (e) => {
     e.preventDefault();
@@ -32,7 +33,8 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
       const imageData = await generateBookCover(
         title.trim(),
         author.trim(),
-        description.trim()
+        description.trim(),
+        selectedModel
       );
       setGeneratedImage(imageData);
       toast.success("Book cover generated successfully!");
@@ -89,6 +91,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
     setGeneratedImage(null);
     setError(null);
     setGeneratingDescription(false);
+    setSelectedModel("provider-4/qwen-image");
   };
 
   return (
@@ -107,7 +110,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
         </>
       )}
 
-      <div className={isModal ? "" : "container mx-auto px-4 py-8"}>
+      <div data-lenis-prevent className={isModal ? "" : "container mx-auto px-4 py-8"}>
         <div className={isModal ? "" : "max-w-4xl mx-auto"}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Input Form */}
@@ -151,6 +154,27 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                     placeholder="Enter author name"
                     required
                   />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="model"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    AI Model
+                  </label>
+                  <select
+                    id="model"
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
+                  >
+                    <option value="provider-4/qwen-image">Qwen Image (Recommended)</option>
+                    <option value="provider-4/imagen-4">Imagen 4</option>
+                  </select>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Choose the AI model for generating your book cover
+                  </p>
                 </div>
 
                 <div>
@@ -250,7 +274,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
             </div>
 
             {/* Generated Cover Display */}
-            <div data-lenis-prevent className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white rounded-lg shadow-lg p-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                 Generated Cover
               </h2>

@@ -189,9 +189,10 @@ Before finalizing your recommendations, double-check that NONE of your recommend
  * @param {string} title - Book title
  * @param {string} author - Book author
  * @param {string} description - Optional cover description
+ * @param {string} model - AI model to use for generation (default: provider-4/qwen-image)
  * @returns {Promise<string>} Base64 encoded image data
  */
-export const generateBookCover = async (title, author, description = "") => {
+export const generateBookCover = async (title, author, description = "", model = "provider-4/qwen-image") => {
   try {
     const prompt = `Create a professional, visually appealing book cover for:
 
@@ -227,7 +228,7 @@ The cover should look like a published book that readers would be drawn to pick 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "provider-4/qwen-image",
+        model: model,
         prompt: prompt,
         n: 1,
         size: "1024x1792", // Try different aspect ratio that might be supported by imagen
