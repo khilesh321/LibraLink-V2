@@ -437,32 +437,67 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
   return (
     <>
       {/* Floating Chat Icon */}
-      <div className="fixed bottom-4 right-4 z-50 md:bottom-6 md:right-6">
-        <button
-          onClick={toggleChat}
-          className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-3 md:p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 cursor-pointer relative overflow-hidden group ${
-            isOpen ? 'animate-pulse' : ''
-          }`}
-          aria-label="Open AI Chat"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          <svg
-            className={`w-5 h-5 md:w-6 md:h-6 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      <div className="fixed bottom-4 right-4 z-50 md:bottom-5 md:right-6">
+        <div className="relative group">
+          {/* Tooltip */}
+          <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap shadow-lg">
+            Chat with AI Assistant
+            <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          </div>
+
+          {/* Ripple effect background */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 animate-ping opacity-20"></div>
+
+          <button
+            onClick={toggleChat}
+            className={`relative bg-gradient-to-r from-blue-500 via-purple-600 to-blue-700 hover:from-blue-600 hover:via-purple-700 hover:to-blue-800 text-white p-4 md:p-5 rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all duration-500 transform cursor-pointer overflow-hidden group/btn ${
+              isOpen ? '' : 'hover:shadow-purple-500/30'
+            }`}
+            aria-label="Open AI Chat Assistant"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-          {!isOpen && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
-          )}
-        </button>
+            {/* Animated background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000"></div>
+
+            {/* Glowing border effect */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 group-hover/btn:opacity-50 blur-sm transition-opacity duration-300"></div>
+
+            {/* Main icon with enhanced animation */}
+            <div className="relative z-10">
+              <svg
+                className={`w-6 h-6 transition-transform duration-300 ${
+                  isOpen ? 'rotate-180' : 'rotate-0'
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+
+            {/* Notification dot with enhanced animation */}
+            {!isOpen && (
+              <div className="absolute -top-1 -right-1 flex items-center justify-center">
+                <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-pink-500 rounded-full animate-bounce shadow-lg">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-pink-500 rounded-full animate-ping opacity-75"></div>
+              </div>
+            )}
+
+            {/* Floating particles effect */}
+            <div className="absolute inset-0 rounded-full overflow-hidden">
+              <div className="absolute top-1 left-1 w-1 h-1 bg-white/60 rounded-full animate-bounce opacity-0 group-hover/btn:opacity-100 animation-delay-100"></div>
+              <div className="absolute top-2 right-2 w-0.5 h-0.5 bg-white/40 rounded-full animate-ping opacity-0 group-hover/btn:opacity-100 animation-delay-300"></div>
+              <div className="absolute bottom-1 left-2 w-0.5 h-0.5 bg-white/50 rounded-full animate-pulse opacity-0 group-hover/btn:opacity-100 animation-delay-500"></div>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Chat Window */}
