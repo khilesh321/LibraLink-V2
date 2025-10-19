@@ -147,6 +147,7 @@ export default function Register() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter your email"
                 required
+                autoComplete="email"
               />
             </div>
 
@@ -167,6 +168,7 @@ export default function Register() {
                   placeholder="Create a password"
                   required
                   minLength={6}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -202,6 +204,7 @@ export default function Register() {
                   placeholder="Confirm your password"
                   required
                   minLength={6}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
