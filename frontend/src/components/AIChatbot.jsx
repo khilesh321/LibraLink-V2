@@ -666,16 +666,6 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               </svg>
             </div>
 
-            {/* Notification dot with enhanced animation */}
-            {!isOpen && (
-              <div className="absolute -top-1 -right-1 flex items-center justify-center">
-                <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-pink-500 rounded-full animate-bounce shadow-lg">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-pink-500 rounded-full animate-ping opacity-75"></div>
-              </div>
-            )}
-
             {/* Floating particles effect */}
             <div className="absolute inset-0 rounded-full overflow-hidden">
               <div className="absolute top-1 left-1 w-1 h-1 bg-white/60 rounded-full animate-bounce opacity-0 group-hover/btn:opacity-100 animation-delay-100"></div>
@@ -811,7 +801,13 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                           a: ({ href, children }) => {
                             // Check if it's an internal link (starts with /)
                             if (href && href.startsWith('/')) {
-                              return <Link to={href} className="text-blue-600 hover:text-blue-800 underline font-medium">{children}</Link>;
+                              return <Link to={href} onClick={() => {
+                                if (isFullscreen) {
+                                  setIsFullscreen(false);
+                                } else {
+                                  setIsOpen(false);
+                                }
+                              }} className="text-blue-600 hover:text-blue-800 underline font-medium">{children}</Link>;
                             }
                             // External links
                             return <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline font-medium">{children}</a>;
