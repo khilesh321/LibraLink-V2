@@ -40,7 +40,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
       toast.success("Book cover generated successfully!");
     } catch (error) {
       setError(error.message);
-      toast.error("Failed to generate book cover. Please try again.");
+      toast.error(description.trim() ? "Generation failed. Try removing or simplifying the description." : "Failed to generate book cover. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -163,18 +163,30 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                   >
                     AI Model
                   </label>
-                  <select
-                    id="model"
-                    value={selectedModel}
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                  >
-                    <option value="provider-4/qwen-image">Qwen Image (Recommended)</option>
-                    <option value="provider-4/imagen-4">Imagen 4</option>
-                  </select>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Choose the AI model for generating your book cover
-                  </p>
+                  <div className="relative">
+                    <select
+                      id="model"
+                      value={selectedModel}
+                      onChange={(e) => setSelectedModel(e.target.value)}
+                      className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 bg-white appearance-none cursor-pointer"
+                    >
+                      <option value="provider-4/qwen-image">🎨 Qwen Image - Creative & Artistic (Recommended)</option>
+                      <option value="provider-4/imagen-4">✨ Imagen 4 - Clean & Minimal Design</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Qwen Image:</span> Great for creative, artistic covers with rich details and imaginative designs
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Imagen 4:</span> Perfect for clean, professional, and minimalist book cover designs
+                    </p>
+                  </div>
                 </div>
 
                 <div>
@@ -264,6 +276,16 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                             <li>• <strong>Google AI Studio:</strong> Upgrade to a paid plan for higher limits</li>
                             <li>• <strong>Alternative Services:</strong> Consider DALL-E, Midjourney, or Stable Diffusion</li>
                             <li>• <strong>Canva:</strong> Use their AI image generator with more generous free tier</li>
+                          </ul>
+                        </div>
+                      )}
+                      {description.trim() && (
+                        <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                          <p className="text-yellow-800 text-sm font-medium mb-2">💡 Try This:</p>
+                          <ul className="text-yellow-700 text-sm space-y-1">
+                            <li>• <strong>Remove the description:</strong> Try generating without any description text</li>
+                            <li>• <strong>Use a shorter description:</strong> Simplify your description to basic style keywords</li>
+                            <li>• <strong>Example:</strong> Instead of a long paragraph, try "modern minimalist with blue tones"</li>
                           </ul>
                         </div>
                       )}
