@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import ReactMarkdown from 'react-markdown';
+import { Link } from 'react-router-dom';
 import { supabase } from '../supabase/supabaseClient';
 import { generateBookRecommendations } from '../utils/geminiUtils';
 
@@ -39,6 +40,30 @@ SPECIAL COMMANDS YOU CAN HANDLE:
 3. BOOK RECOMMENDATIONS: When users ask for "recommendations" or "suggest books" without a specific topic, respond with: [BOOK_RECOMMENDATIONS]
 4. TOPIC RECOMMENDATIONS: When users ask for "recommend books on [topic]" or "suggest books about [subject]", respond with: [BOOK_RECOMMENDATIONS_BY_TOPIC:topic]
 5. SIMILAR BOOKS: When users ask for "books similar to [book title]" or "recommend similar books", respond with: [BOOK_SIMILAR:book_title]
+6. BOOK DETAILS: When users ask for details about a specific book or want to borrow/view a book, respond with: [BOOK_DETAILS:book_title_or_id] where you can use either the book title or the book UUID. The system will handle finding the correct book.
+
+LIBRARY PROCESSES AND INSTRUCTIONS:
+When users ask about borrowing books:
+- Explain that borrowing is done through QR code scanning
+- Books can be borrowed instantly with automated tracking
+- Users can view their borrowed books and due dates in "My Transactions"
+- Mention that real-time availability is shown
+
+When users ask about renewing books:
+- Renewal can be done with one click from the book details modal
+- Users can renew a book up to 2 times
+- After 2 renewals, the book must be returned
+- Due dates are automatically extended upon renewal
+
+When users ask about returning books:
+- Books are returned through the library system
+- Users will be prompted to rate the book after returning
+- Returned books become available for other users immediately
+
+When users ask about reading books:
+- For physical books: Users must borrow the book first, then can read it during the borrowing period
+- For digital resources (PDFs): Available in the Resources section with options to "Read Online" or "Read as Flipbook" for interactive experience
+- Digital resources can be accessed without borrowing
 
 Always be friendly, helpful, and knowledgeable about library operations. Remember user information and preferences throughout the conversation to provide personalized assistance. If you don't know something specific about the library's current inventory or policies, acknowledge this and suggest asking a librarian for the most up-to-date information.`
   });
@@ -335,7 +360,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
 
           if (searchResults.length > 0) {
             finalResponse = `I found ${searchResults.length} book(s) related to "${searchQuery}":\n\n${searchResults.map((book, index) =>
-              `${index + 1}. **${book.title}** by ${book.author || 'Unknown'}\n   ${book.available ? '✅ Available' : '❌ Currently borrowed'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
+              `${index + 1}. **[${book.title}](/book/${book.id})** by ${book.author || 'Unknown'}\n   ${book.available ? '✅ Available' : '❌ Currently borrowed'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
             ).join('\n\n')}\n\nWould you like me to help you borrow any of these books?`;
           } else {
             finalResponse = `I couldn't find any books related to "${searchQuery}" in our library. Would you like me to suggest some similar topics or help you search for something else?`;
@@ -358,7 +383,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
             finalResponse = `I'm sorry, but there are no similar books currently available to "${bookTitle}" in our library. Would you like me to search for a different topic or help you find books in a related area?`;
           } else {
             finalResponse = `Here are some books similar to "${bookTitle}" that are currently available:\n\n${similarBooks.map((book, index) =>
-              `${index + 1}. **${book.title}** by ${book.author || 'Unknown'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
+              `${index + 1}. **[${book.title}](/book/${book.id})** by ${book.author || 'Unknown'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
             ).join('\n\n')}\n\nWould you like me to help you borrow any of these books?`;
           }
         }
@@ -373,7 +398,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               finalResponse = `I'm sorry, but there are no books currently available on "${topic}" in our library. Would you like me to search for a different topic or help you find books in a related area?`;
             } else {
               finalResponse = `Here are some available books on "${topic}" that I recommend:\n\n${recommendations.books.map((book, index) =>
-                `${index + 1}. **${book.title}** by ${book.author || 'Unknown'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
+                `${index + 1}. **[${book.title}](/book/${book.id})** by ${book.author || 'Unknown'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
               ).join('\n\n')}\n\nWould you like me to help you borrow any of these books?`;
             }
           }
@@ -387,6 +412,54 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
           ).join('\n\n')}\n\nWould you like me to help you borrow any of these books?`;
         } else {
           finalResponse = `I'd be happy to recommend some books! Since I don't have information about your reading preferences yet, here are some popular books from our collection. Try borrowing a few books first, and I can give you more personalized recommendations next time!`;
+        }
+      } else if (finalResponse.includes('[BOOK_DETAILS:')) {
+        const detailsMatch = finalResponse.match(/\[BOOK_DETAILS:(.*?)\]/);
+        if (detailsMatch) {
+          const bookIdentifier = detailsMatch[1].trim();
+          
+          // Check if it's a UUID (book ID) or a title
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          let bookId = bookIdentifier;
+          
+          if (!uuidRegex.test(bookIdentifier)) {
+            // It's a title, search for the book
+            try {
+              const { data: books, error } = await supabase
+                .from('books')
+                .select('id, title, author')
+                .ilike('title', `%${bookIdentifier}%`)
+                .limit(1);
+              
+              if (!error && books && books.length > 0) {
+                bookId = books[0].id;
+                finalResponse = `Here's the details for "${books[0].title}" by ${books[0].author || 'Unknown'}. [View Book Details](/book/${bookId})`;
+              } else {
+                finalResponse = `I couldn't find a book with that title. Try searching for books with a similar topic instead.`;
+              }
+            } catch (error) {
+              console.error('Error searching for book:', error);
+              finalResponse = `I couldn't find details for that book. Please try a different search.`;
+            }
+          } else {
+            // It's a book ID, fetch details
+            try {
+              const { data: book, error } = await supabase
+                .from('books')
+                .select('title, author')
+                .eq('id', bookId)
+                .single();
+
+              if (!error && book) {
+                finalResponse = `Here's the details for "${book.title}" by ${book.author || 'Unknown'}. [View Book Details](/book/${bookId})`;
+              } else {
+                finalResponse = `I found the book you're looking for. [View Book Details](/book/${bookId})`;
+              }
+            } catch (error) {
+              console.error('Error fetching book details:', error);
+              finalResponse = `Click here to view the book details: [View Book Details](/book/${bookId})`;
+            }
+          }
         }
       }
 
@@ -622,6 +695,14 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                           h1: ({ children }) => <h1 className="text-lg font-bold mb-2 text-blue-800 border-b border-blue-200 pb-1">{children}</h1>,
                           h2: ({ children }) => <h2 className="text-base font-bold mb-2 text-blue-800">{children}</h2>,
                           h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-blue-800">{children}</h3>,
+                          a: ({ href, children }) => {
+                            // Check if it's an internal link (starts with /)
+                            if (href && href.startsWith('/')) {
+                              return <Link to={href} className="text-blue-600 hover:text-blue-800 underline font-medium">{children}</Link>;
+                            }
+                            // External links
+                            return <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline font-medium">{children}</a>;
+                          },
                         }}
                       >
                         {message.text}
