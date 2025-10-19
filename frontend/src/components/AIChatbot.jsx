@@ -22,7 +22,7 @@ const AIChatbot = () => {
 
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ 
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.5-pro',
     systemInstruction: `You are a helpful AI assistant for LibraLink, a comprehensive library management system. Your role is to assist users with:
 
 - Finding and recommending books based on their interests, genres, or authors
