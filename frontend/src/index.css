@@ -50,10 +50,10 @@
 }
 
 /* Image optimization */
-img {
+/* img {
   max-width: 100%;
   height: auto;
-}
+} */
 
 /* Lazy loading for images */
 img[loading="lazy"] {
