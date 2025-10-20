@@ -92,11 +92,6 @@ export default function Navbar() {
           path: "/recommendations",
           icon: Sparkles,
         },
-        {
-          name: "AI Book Generator",
-          path: "/book-pdf-generator",
-          icon: Book,
-        },
         ...(isLibrarian
           ? [{ name: "Add Book", path: "/books/add", icon: Upload }]
           : []),
@@ -108,6 +103,11 @@ export default function Navbar() {
       icon: FileText,
       dropdown: [
         { name: "Browse Resources", path: "/resources", icon: FileText },
+        {
+          name: "AI Resource Generator",
+          path: "/ai-resource-generator",
+          icon: Book,
+        },
         ...(isLibrarian
           ? [{ name: "Upload PDF", path: "/upload", icon: Upload }]
           : []),

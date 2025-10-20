@@ -58,7 +58,7 @@ export default function App() {
             <Route path="/resource/:id" element={<ResourceDetailsPage />} />
             <Route path="/my-transactions" element={<MyTransactions />} />
             <Route path="/recommendations" element={<Recommendations />} />
-            <Route path="/book-pdf-generator" element={<BookPDFGeneratorPage />} />
+            <Route path="/ai-resource-generator" element={<BookPDFGeneratorPage />} />
           </Routes>
         </ReactLenis>
         <Footer />
