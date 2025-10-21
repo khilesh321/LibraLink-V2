@@ -93,6 +93,7 @@ export default function Navbar() {
           path: "/recommendations",
           icon: Sparkles,
         },
+        { name: "Wishlist", path: "/wishlist", icon: Heart },
         ...(isLibrarian
           ? [{ name: "Add Book", path: "/books/add", icon: Upload }]
           : []),
@@ -144,12 +145,6 @@ export default function Navbar() {
           : []),
       ],
       show: user && isLibrarian,
-    },
-    {
-      name: "Wishlist",
-      icon: Heart,
-      path: "/wishlist",
-      show: user,
     },
   ];
 
