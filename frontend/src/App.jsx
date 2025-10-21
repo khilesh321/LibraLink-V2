@@ -1,5 +1,5 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 // Lazy load components for better performance
 const Navbar = lazy(() => import("./components/Navbar"));
 const Login = lazy(() => import("./Auth/Login.jsx"));
@@ -26,17 +26,27 @@ const BookPDFGeneratorPage = lazy(() => import("./pages/BookPDFGeneratorPage.jsx
 import { ReactLenis } from "lenis/react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import GlobalLoader from "./components/GlobalLoader";
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true)
+    
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 2500)
+
+    return () => clearTimeout(timer)
+  }, [])
+  
+  if (isLoading) {
+    return <GlobalLoader isLoading={true} loadingText="Initializing LibraLink..." />
+  }
 
   return (
     <BrowserRouter>
     <div className="min-h-screen">
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      }>
+      {/* <Suspense fallback={<GlobalLoader isLoading={true} loadingText="Loading your library..." />}> */}
         <Navbar />
         <ReactLenis root>
           <Routes>
@@ -75,7 +85,7 @@ export default function App() {
           theme="light"
         />
         <AIChatbot />
-      </Suspense>
+      {/* </Suspense> */}
     </div>
     </BrowserRouter>
   );
