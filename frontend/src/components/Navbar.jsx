@@ -18,6 +18,7 @@ import {
   Settings,
   Search,
   Clipboard,
+  Heart,
   Sparkles,
   Book,
 } from "lucide-react";
@@ -104,7 +105,7 @@ export default function Navbar() {
       dropdown: [
         { name: "Browse Resources", path: "/resources", icon: FileText },
         {
-          name: "AI Resource Generator",
+          name: "AI Resource Generator (Beta)",
           path: "/ai-resource-generator",
           icon: Book,
         },
@@ -143,6 +144,12 @@ export default function Navbar() {
           : []),
       ],
       show: user && isLibrarian,
+    },
+    {
+      name: "Wishlist",
+      icon: Heart,
+      path: "/wishlist",
+      show: user,
     },
   ];
 

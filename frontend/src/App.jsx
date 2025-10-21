@@ -27,6 +27,7 @@ import { ReactLenis } from "lenis/react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GlobalLoader from "./components/GlobalLoader";
+const Wishlist = lazy(() => import("./pages/Wishlist.jsx"));
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true)
@@ -69,6 +70,7 @@ export default function App() {
             <Route path="/my-transactions" element={<MyTransactions />} />
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/ai-resource-generator" element={<BookPDFGeneratorPage />} />
+            <Route path="/wishlist" element={<Wishlist />} />
           </Routes>
         </ReactLenis>
         <Footer />

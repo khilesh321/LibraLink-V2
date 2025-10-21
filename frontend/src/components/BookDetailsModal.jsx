@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
+import { useBookmarks } from "../hooks/useBookmarks";
 import {
   X,
   BookOpen,
@@ -13,6 +14,7 @@ import {
   RotateCcw,
   QrCode,
   FileText,
+  Heart,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "react-toastify";
@@ -21,6 +23,7 @@ import BookSummaryModal from "./BookSummaryModal";
 
 export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction }) {
   const { role, loading: roleLoading } = useUserRole();
+  const { toggleBookmark, isBookmarked } = useBookmarks();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(false);
   const [availability, setAvailability] = useState(null);
@@ -357,7 +360,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                       <h4 className="text-lg font-semibold text-gray-900 mb-3">
                         Actions
                       </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {userTransaction ? (
                           <>
                             <button
@@ -408,6 +411,17 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                         >
                           <FileText className="w-4 h-4" />
                           Summarize Book
+                        </button>
+                        <button
+                          onClick={() => toggleBookmark(bookId)}
+                          className={`w-full font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
+                            isBookmarked(bookId)
+                              ? "bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white"
+                              : "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white"
+                          }`}
+                        >
+                          <Heart className={`w-4 h-4 ${isBookmarked(bookId) ? "fill-current" : ""}`} />
+                          {isBookmarked(bookId) ? "Remove from Wishlist" : "Add to Wishlist"}
                         </button>
                       </div>
                       {userTransaction && (

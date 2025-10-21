@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
+import { useBookmarks } from "../hooks/useBookmarks";
 import { toast } from "react-toastify";
 import ReactMarkdown from "react-markdown";
 import BookDetailsModal from "../components/BookDetailsModal";
 import RatingModal from "../components/RatingModal";
+import { Heart } from "lucide-react";
 
 export default function Books() {
   const { role, loading: roleLoading } = useUserRole();
+  const { bookmarks, toggleBookmark, checkMultipleBookmarks, isBookmarked } = useBookmarks();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userTransactions, setUserTransactions] = useState([]);
@@ -22,6 +25,7 @@ export default function Books() {
   const [deleteBookId, setDeleteBookId] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentUser, setCurrentUser] = useState(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -29,7 +33,17 @@ export default function Books() {
     if (!roleLoading) {
       fetchUserTransactions();
     }
+    getCurrentUser();
   }, [roleLoading]);
+
+  const getCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+    }
+  };
 
   const fetchBooks = async () => {
     try {
@@ -88,6 +102,10 @@ export default function Books() {
       );
 
       setBooks(booksWithAvailabilityAndRatings);
+
+      // Check bookmark status for all books
+      const bookIds = booksWithAvailabilityAndRatings.map(book => book.id);
+      checkMultipleBookmarks(bookIds);
     } catch (error) {
       console.error("Error fetching books:", error);
     } finally {
@@ -506,7 +524,27 @@ export default function Books() {
                   key={book.id}
                   className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[70.5vh] duration-300"
                 >
-                  <div className="bg-gray-200 h-64 md:h-auto">
+                  <div className="bg-gray-200 h-64 md:h-auto relative">
+                    {/* Bookmark Button - Only show when user is logged in */}
+                    {currentUser && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleBookmark(book.id);
+                        }}
+                        className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/90 hover:bg-white shadow-md hover:shadow-lg transition-all duration-200"
+                        title={isBookmarked(book.id) ? "Remove from wishlist" : "Add to wishlist"}
+                      >
+                        <Heart
+                          className={`w-5 h-5 transition-colors duration-200 ${
+                            isBookmarked(book.id)
+                              ? "fill-red-500 text-red-500"
+                              : "text-gray-600 hover:text-red-500"
+                          }`}
+                        />
+                      </button>
+                    )}
+
                     {book.cover_image_url ? (
                       <img
                         src={book.cover_image_url}
