@@ -172,6 +172,8 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                     >
                       <option value="provider-4/qwen-image">🎨 Qwen Image - Creative & Artistic (Recommended)</option>
                       <option value="provider-4/imagen-4">✨ Imagen 4 - Clean & Minimal Design</option>
+                      <option value="provider-4/imagen-3">✨ Imagen 3 - Clean & Minimal Design</option>
+                      <option value="provider-5/midjourney-v7">✨ Midjourney V7 - Artistic & Abstract Design</option>
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

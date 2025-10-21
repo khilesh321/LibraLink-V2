@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 
 const a4fApiKey = import.meta.env.VITE_A4F_API_KEY;
 const a4fBaseUrl = 'https://api.a4f.co/v1';
+// const llm7BaseUrl = 'https://api.llm7.io/v1';
 
 const a4fClient = new OpenAI({
   apiKey: a4fApiKey,
@@ -214,7 +215,6 @@ Requirements:
 ${description ? '- Incorporate visual elements that relate to the book\'s themes or content' : ''}
 
 IMPORTANT RESTRICTIONS:
-- DO NOT include any animals, birds, penguins, or living creatures
 - Focus on abstract patterns, geometric shapes, textures, and typography
 - Use only abstract design elements, symbols, and motifs
 
