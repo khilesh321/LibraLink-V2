@@ -81,7 +81,7 @@ export default function Register() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="max-w-md w-full mx-4">
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
             <div className="text-green-600 text-6xl mb-4">✓</div>
@@ -121,7 +121,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
       <div className="max-w-md w-full mx-4">
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="text-center mb-8">

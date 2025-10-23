@@ -5,13 +5,13 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 text-gray-800 border-t border-gray-200">
+    <footer className="bg-linear-to-br from-gray-50 via-blue-50 to-indigo-50 text-gray-800 border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
           
           <div className="lg:col-span-1 space-y-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold text-gray-900">LibraLink</span>

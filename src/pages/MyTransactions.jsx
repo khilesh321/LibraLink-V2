@@ -363,7 +363,7 @@ export default function MyTransactions() {
               <button
                 onClick={handleExportPDF}
                 disabled={transactions.length === 0}
-                className="group flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-md w-full sm:w-auto font-medium cursor-pointer"
+                className="group flex items-center justify-center px-5 py-2.5 bg-linear-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-md w-full sm:w-auto font-medium cursor-pointer"
               >
                 <Download className="w-4 h-4 mr-2 group-hover:animate-bounce" />
                 Export PDF
@@ -371,7 +371,7 @@ export default function MyTransactions() {
               <button
                 onClick={handleExportCSV}
                 disabled={transactions.length === 0}
-                className="group flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-md w-full sm:w-auto font-medium cursor-pointer"
+                className="group flex items-center justify-center px-5 py-2.5 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-md w-full sm:w-auto font-medium cursor-pointer"
               >
                 <Download className="w-4 h-4 mr-2 group-hover:animate-bounce" />
                 Export CSV

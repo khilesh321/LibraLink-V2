@@ -277,7 +277,7 @@ export default function EditResource() {
                     type="button"
                     onClick={handleGenerateDescription}
                     disabled={generatingDescription || !documentName.trim()}
-                    className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
+                    className="flex items-center gap-2 bg-linear-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
                   >
                     <Wand2 className="w-4 h-4" />
                     {generatingDescription ? "Generating..." : "AI Generate"}
@@ -308,7 +308,7 @@ export default function EditResource() {
                   <button
                     type="button"
                     onClick={() => setShowCoverGenerator(true)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
+                    className="flex items-center gap-2 bg-linear-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
                   >
                     <Wand2 className="w-4 h-4" />
                     Generate Cover

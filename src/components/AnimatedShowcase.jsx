@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 
 export default function AnimatedShowcase() {
   return (
-    <div className="py-16 bg-gradient-to-r from-indigo-50 to-purple-50">
+    <div className="py-16 bg-linear-to-r from-indigo-50 to-purple-50">
       <div className="max-w-7xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

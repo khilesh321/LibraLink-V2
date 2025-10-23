@@ -339,7 +339,7 @@ Description:`;
             <button
               onClick={generateDescription}
               disabled={generatingDescription || !documentName.trim() || !author.trim()}
-              className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
+              className="flex items-center gap-2 bg-linear-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
             >
               <Wand2 className="w-4 h-4" />
               {generatingDescription ? "Generating..." : "Auto Generate"}
@@ -373,7 +373,7 @@ Description:`;
               type="button"
               onClick={() => setShowCoverGenerator(true)}
               disabled={!documentName.trim() || !author.trim()}
-              className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
+              className="flex items-center gap-2 bg-linear-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
             >
               <Wand2 className="w-4 h-4" />
               AI Generate

@@ -10,7 +10,7 @@ export default function GlobalLoader({ isLoading, loadingText = 'Loading your li
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-linear-to-br from-indigo-900 via-purple-900 to-pink-800"
         >
           <div className="text-center space-y-8">
             {/* Logo Animation */}

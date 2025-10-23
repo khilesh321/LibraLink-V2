@@ -95,7 +95,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
   };
 
   return (
-    <div className={isModal ? "p-6" : "min-h-screen bg-gradient-to-br from-purple-50 to-blue-100"}>
+    <div className={isModal ? "p-6" : "min-h-screen bg-linear-to-br from-purple-50 to-blue-100"}>
       {!isModal && (
         <>
           {/* Header */}
@@ -203,7 +203,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                       type="button"
                       onClick={handleGenerateDescription}
                       disabled={generatingDescription || !title.trim() || !author.trim()}
-                      className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
+                      className="flex items-center gap-2 bg-linear-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-sm cursor-pointer"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -228,7 +228,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 disabled:hover:scale-100"
+                    className="flex-1 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 disabled:hover:scale-100"
                   >
                     {loading ? (
                       <div className="flex items-center justify-center">
@@ -328,7 +328,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                       <div className="flex space-x-3">
                         <button
                           onClick={handleDownloadCover}
-                          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105 flex items-center justify-center"
+                          className="flex-1 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105 flex items-center justify-center"
                         >
                           <svg
                             className="w-5 h-5 mr-2"
@@ -354,7 +354,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                             }
                           }}
                           disabled={applyingCover}
-                          className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center"
+                          className="flex-1 bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center"
                         >
                           {applyingCover ? (
                             <>

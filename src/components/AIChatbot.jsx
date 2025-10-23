@@ -852,20 +852,20 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
           </div>
 
           {/* Ripple effect background */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 animate-ping opacity-20"></div>
+          <div className="absolute inset-0 rounded-full bg-linear-to-r from-blue-400 to-purple-500 animate-ping opacity-20"></div>
 
           <button
             onClick={toggleChat}
-            className={`relative bg-gradient-to-r from-blue-500 via-purple-600 to-blue-700 hover:from-blue-600 hover:via-purple-700 hover:to-blue-800 text-white p-4 md:p-5 rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all duration-500 transform cursor-pointer overflow-hidden group/btn ${
+            className={`relative bg-linear-to-r from-blue-500 via-purple-600 to-blue-700 hover:from-blue-600 hover:via-purple-700 hover:to-blue-800 text-white p-4 md:p-5 rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all duration-500 transform cursor-pointer overflow-hidden group/btn ${
               isOpen ? '' : 'hover:shadow-purple-500/30'
             }`}
             aria-label="Open AI Chat Assistant"
           >
             {/* Animated background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000"></div>
 
             {/* Glowing border effect */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 group-hover/btn:opacity-50 blur-sm transition-opacity duration-300"></div>
+            <div className="absolute inset-0 rounded-full bg-linear-to-r from-blue-400 to-purple-500 opacity-0 group-hover/btn:opacity-50 blur-sm transition-opacity duration-300"></div>
 
             {/* Main icon with enhanced animation */}
             <div className="relative z-10">
@@ -904,8 +904,8 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
             : 'bottom-16 right-4 left-4 md:bottom-24 md:right-6 md:left-auto w-auto md:w-96 h-[400px] md:h-[500px] scale-100 opacity-100'
         } ${isOpen ? 'animate-in slide-in-from-bottom-4 fade-in duration-300' : 'animate-out slide-out-to-bottom-4 fade-out duration-200'}`}>
           {/* Chat Header */}
-          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 text-white p-3 md:p-4 rounded-t-2xl flex items-center justify-between relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+          <div className="bg-linear-to-r from-blue-600 via-purple-600 to-blue-700 text-white p-3 md:p-4 rounded-t-2xl flex items-center justify-between relative overflow-hidden">
+            <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent"></div>
             <div className="flex items-center space-x-2 md:space-x-3 relative z-10">
               <div className="w-6 h-6 md:w-8 md:h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <svg
@@ -986,7 +986,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
           </div>
 
           {/* Messages Area */}
-          <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gradient-to-b from-gray-50 to-white ${
+          <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-linear-to-b from-gray-50 to-white ${
             isFullscreen ? 'bg-gray-50' : 'bg-gray-50'
           }`}>
             {messages.map((message, index) => (
@@ -1000,7 +1000,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                     isFullscreen ? 'max-w-4xl' : 'max-w-[calc(100vw-3rem)] sm:max-w-xs md:max-w-md'
                   } px-3 py-2 md:px-4 md:py-3 rounded-2xl shadow-sm relative group transition-all duration-200 hover:shadow-md ${
                     message.sender === 'user'
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md'
+                      ? 'bg-linear-to-r from-blue-500 to-purple-600 text-white rounded-br-md'
                       : 'bg-white text-gray-800 border border-gray-100 rounded-bl-md'
                   }`}
                 >
@@ -1104,7 +1104,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               <button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-3 py-2 md:px-5 md:py-3 rounded-xl transition-all duration-200 disabled:cursor-not-allowed cursor-pointer hover:shadow-lg disabled:hover:shadow-none transform hover:scale-105 disabled:hover:scale-100 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 ${
+                className={`bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-3 py-2 md:px-5 md:py-3 rounded-xl transition-all duration-200 disabled:cursor-not-allowed cursor-pointer hover:shadow-lg disabled:hover:shadow-none transform hover:scale-105 disabled:hover:scale-100 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 ${
                   isLoading ? 'animate-pulse' : ''
                 }`}
               >

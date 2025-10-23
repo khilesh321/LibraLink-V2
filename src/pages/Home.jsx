@@ -59,7 +59,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Hero */}
       <section className="px-6 pt-16 pb-20">
         <div className="max-w-7xl mx-auto">
@@ -116,7 +116,7 @@ export default function Home() {
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: 0.8 }}
-                      className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600"
+                      className="inline-block text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-purple-600"
                     >
                       Bridge
                     </motion.span>
@@ -160,7 +160,7 @@ export default function Home() {
                     className="inline-flex items-center justify-center gap-3 rounded-xl bg-indigo-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transform transition-all duration-200 hover:bg-indigo-700 hover:shadow-xl relative overflow-hidden group"
                   >
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-indigo-700 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      className="absolute inset-0 bg-linear-to-r from-indigo-700 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       initial={false}
                       whileHover={{ scale: 1.1 }}
                     />
@@ -186,7 +186,7 @@ export default function Home() {
                       className="inline-flex items-center justify-center gap-3 rounded-xl border-2 border-gray-300 px-8 py-4 text-lg font-semibold text-gray-700 bg-white shadow-sm transform transition-all duration-200 hover:border-indigo-300 hover:shadow-md relative overflow-hidden group"
                     >
                       <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute inset-0 bg-linear-to-r from-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         initial={false}
                         whileHover={{ scale: 1.1 }}
                       />
@@ -211,7 +211,7 @@ export default function Home() {
                       className="inline-flex items-center justify-center gap-3 rounded-xl border-2 border-gray-300 px-8 py-4 text-lg font-semibold text-gray-700 bg-white shadow-sm transform transition-all duration-200 hover:border-indigo-300 hover:shadow-md relative overflow-hidden group"
                     >
                       <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute inset-0 bg-linear-to-r from-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         initial={false}
                         whileHover={{ scale: 1.1 }}
                       />
@@ -285,7 +285,7 @@ export default function Home() {
               {/* Animated Admin Quick Access */}
               {isLibrarian && (
                 <motion.div
-                  className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4"
+                  className="bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4"
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.6, delay: 1.7 }}
@@ -326,7 +326,7 @@ export default function Home() {
                         className="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-all duration-200 relative overflow-hidden group"
                       >
                         <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-amber-700 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          className="absolute inset-0 bg-linear-to-r from-amber-700 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                           initial={false}
                           whileHover={{ scale: 1.1 }}
                         />
@@ -352,7 +352,7 @@ export default function Home() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute top-50 left-120 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl"
+                    className="absolute top-50 left-120 flex items-center justify-center bg-linear-to-br from-indigo-50 to-purple-50 rounded-2xl"
                   >
                     <div className="text-center space-y-4">
                       <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto" />
@@ -367,7 +367,7 @@ export default function Home() {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl"
+                    className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 rounded-2xl"
                   >
                     <div className="text-center space-y-4 p-6">
                       <div className="w-16 h-16 mx-auto rounded-full bg-gray-200 flex items-center justify-center">
@@ -410,7 +410,7 @@ export default function Home() {
 
               {/* Overriding logo 😎 */}
               {/* <div className="absolute -top-4 left-75 w-150 h-150 border rounded pointer-events-none"></div> */}
-              <div className="absolute bottom-4 right-5 w-35 h-11 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg pointer-events-none">
+              <div className="absolute bottom-4 right-5 w-35 h-11 bg-linear-to-r from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg pointer-events-none">
                 <div className="flex items-center justify-center gap-2 px-3">
                   <AlarmCheck className="w-5 h-5 text-white" />
                   <span className="text-white text-sm font-semibold">
@@ -453,7 +453,7 @@ export default function Home() {
                   className="group rounded-2xl bg-white shadow-lg ring-1 ring-gray-100 p-6 transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:ring-indigo-200"
                 >
                   <div className="space-y-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       {f.icon}
                     </div>
                     <div>
@@ -469,7 +469,7 @@ export default function Home() {
           </div>
 
           {/* How It Works */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-3xl p-8 sm:p-12 mb-16">
+          <div className="bg-linear-to-r from-indigo-50 to-purple-50 rounded-3xl p-8 sm:p-12 mb-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -491,7 +491,7 @@ export default function Home() {
                 transition={{ duration: 0.5 }}
                 className="text-center space-y-4"
               >
-                <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center text-white text-2xl font-bold">
+                <div className="w-16 h-16 mx-auto rounded-full bg-linear-to-r from-green-400 to-blue-500 flex items-center justify-center text-white text-2xl font-bold">
                   1
                 </div>
                 <h4 className="text-xl font-semibold text-gray-900">
@@ -508,7 +508,7 @@ export default function Home() {
                 transition={{ duration: 0.5 }}
                 className="text-center space-y-4"
               >
-                <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center text-white text-2xl font-bold">
+                <div className="w-16 h-16 mx-auto rounded-full bg-linear-to-r from-purple-400 to-pink-500 flex items-center justify-center text-white text-2xl font-bold">
                   2
                 </div>
                 <h4 className="text-xl font-semibold text-gray-900">
@@ -525,7 +525,7 @@ export default function Home() {
                 transition={{ duration: 0.5 }}
                 className="text-center space-y-4"
               >
-                <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center text-white text-2xl font-bold">
+                <div className="w-16 h-16 mx-auto rounded-full bg-linear-to-r from-orange-400 to-red-500 flex items-center justify-center text-white text-2xl font-bold">
                   3
                 </div>
                 <h4 className="text-xl font-semibold text-gray-900">
@@ -542,7 +542,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-6">
             <Link
               to="/books"
-              className="group rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105"
+              className="group rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105"
             >
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -570,7 +570,7 @@ export default function Home() {
 
             <Link
               to={user ? "/my-transactions" : "/login"}
-              className="group rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105"
+              className="group rounded-2xl bg-linear-to-br from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-2xl p-8 transform transition-all duration-300 hover:scale-105"
             >
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -607,7 +607,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl text-white p-8 sm:p-12 text-center"
+            className="bg-linear-to-r from-gray-900 to-gray-800 rounded-3xl text-white p-8 sm:p-12 text-center"
           >
             <h3 className="text-2xl sm:text-3xl font-bold mb-4">
               Ready to Transform Your Library Experience?

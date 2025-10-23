@@ -300,7 +300,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                      <div className="w-full h-full bg-linear-to-br from-blue-100 to-purple-100 flex items-center justify-center">
                         <BookOpen className="w-16 h-16 text-gray-400" />
                       </div>
                     )}
@@ -366,7 +366,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                             <button
                               onClick={handleReturnBook}
                               disabled={actionLoading.return}
-                              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
+                              className="w-full bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
                             >
                               <CheckCircle className="w-4 h-4" />
                               {actionLoading.return ? "Returning..." : "Return Book"}
@@ -374,7 +374,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                             <button
                               onClick={handleRenewBook}
                               disabled={actionLoading.renew || renewalCount >= 2}
-                              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
+                              className="w-full bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
                             >
                               <RotateCcw className="w-4 h-4" />
                               {actionLoading.renew 
@@ -388,7 +388,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                           <button
                             onClick={handleIssueBook}
                             disabled={actionLoading.issue || !availability}
-                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <BookOpen className="w-4 h-4" />
                             {actionLoading.issue
@@ -400,14 +400,14 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                         )}
                         <button
                           onClick={() => setShowQRCode(!showQRCode)}
-                          className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                          className="w-full bg-linear-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <QrCode className="w-4 h-4" />
                           {showQRCode ? "Hide QR Code" : "Generate QR Code"}
                         </button>
                         <button
                           onClick={() => setShowSummary(true)}
-                          className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                          className="w-full bg-linear-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <FileText className="w-4 h-4" />
                           Summarize Book
@@ -416,8 +416,8 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                           onClick={() => toggleBookmark(bookId)}
                           className={`w-full font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
                             isBookmarked(bookId)
-                              ? "bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white"
-                              : "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white"
+                              ? "bg-linear-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white"
+                              : "bg-linear-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white"
                           }`}
                         >
                           <Heart className={`w-4 h-4 ${isBookmarked(bookId) ? "fill-current" : ""}`} />
@@ -446,7 +446,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                       <h4 className="text-lg font-semibold text-gray-900 mb-3">
                         Share Book QR Code
                       </h4>
-                      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4">
+                      <div className="bg-linear-to-br from-purple-50 to-pink-50 rounded-lg p-4">
                         <QRCodeGenerator
                           bookUrl={`${window.location.origin}/book/${bookId}`}
                           bookTitle={book.title}
