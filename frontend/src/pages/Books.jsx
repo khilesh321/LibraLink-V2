@@ -524,7 +524,7 @@ export default function Books() {
                   key={book.id}
                   className="bg-white group relative rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow md:min-h-[70.5vh] duration-300"
                 >
-                  <div className="bg-gray-200 h-64 md:h-auto relative">
+                  <div className="bg-gray-200 h-64 md:h-auto">
                     {/* Bookmark Button - Only show when user is logged in */}
                     {currentUser && (
                       <button
@@ -532,7 +532,7 @@ export default function Books() {
                           e.stopPropagation();
                           toggleBookmark(book.id);
                         }}
-                        className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/90 hover:bg-white shadow-md hover:shadow-lg transition-all duration-200"
+                        className="absolute top-3 right-3 z-5 p-2 rounded-full bg-white/90 hover:bg-white shadow-md hover:shadow-lg transition-all duration-200"
                         title={isBookmarked(book.id) ? "Remove from wishlist" : "Add to wishlist"}
                       >
                         <Heart
