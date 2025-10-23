@@ -862,7 +862,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
             aria-label="Open AI Chat Assistant"
           >
             {/* Animated background gradient */}
-            <div className="absolute inset-0 bg-linear-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:btn:translate-x-[100%] transition-transform duration-1000"></div>
 
             {/* Glowing border effect */}
             <div className="absolute inset-0 rounded-full bg-linear-to-r from-blue-400 to-purple-500 opacity-0 group-hover/btn:opacity-50 blur-sm transition-opacity duration-300"></div>
@@ -930,7 +930,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
             <div className="flex items-center space-x-1 relative z-10">
               <button
                 onClick={toggleFullscreen}
-                className="text-white/80 hover:text-white hover:bg-white/10 p-2 md:p-2 rounded-lg transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
+                className="text-white/80 hover:text-white hover:bg-white/10 p-2 md:p-2 rounded-lg transition-all duration-200 cursor-pointer min-w-11 min-h-11 md:min-w-0 md:min-h-0 flex items-center justify-center"
                 aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
               >
                 {isFullscreen ? (
@@ -965,7 +965,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               </button>
               <button
                 onClick={toggleChat}
-                className="text-white/80 hover:text-white hover:bg-white/10 p-2 md:p-2 rounded-lg transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
+                className="text-white/80 hover:text-white hover:bg-white/10 p-2 md:p-2 rounded-lg transition-all duration-200 cursor-pointer min-w-11 min-h-11 md:min-w-0 md:min-h-0 flex items-center justify-center"
                 aria-label="Close chat"
               >
                 <svg
@@ -1104,7 +1104,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
               <button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className={`bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-3 py-2 md:px-5 md:py-3 rounded-xl transition-all duration-200 disabled:cursor-not-allowed cursor-pointer hover:shadow-lg disabled:hover:shadow-none transform hover:scale-105 disabled:hover:scale-100 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 ${
+                className={`bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-3 py-2 md:px-5 md:py-3 rounded-xl transition-all duration-200 disabled:cursor-not-allowed cursor-pointer hover:shadow-lg disabled:hover:shadow-none transform hover:scale-105 disabled:hover:scale-100 min-w-11 min-h-11 md:min-w-0 md:min-h-0 ${
                   isLoading ? 'animate-pulse' : ''
                 }`}
               >
