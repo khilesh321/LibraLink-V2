@@ -106,9 +106,10 @@ export default function Navbar() {
       dropdown: [
         { name: "Browse Resources", path: "/resources", icon: FileText },
         {
-          name: "AI Resource Generator (Beta)",
+          name: "AI Resource Generator",
           path: "/ai-resource-generator",
           icon: Book,
+          beta: true,
         },
         ...(isLibrarian
           ? [{ name: "Upload PDF", path: "/upload", icon: Upload }]
@@ -196,6 +197,11 @@ export default function Navbar() {
                           >
                             {<subItem.icon className="w-4 h-4" />}
                             <span>{subItem.name}</span>
+                            {subItem.beta && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                Beta
+                              </span>
+                            )}
                           </Link>
                         ))}
                       </div>
@@ -336,6 +342,11 @@ export default function Navbar() {
                             >
                               {<subItem.icon className="w-4 h-4" />}
                               <span>{subItem.name}</span>
+                              {subItem.beta && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                  Beta
+                                </span>
+                              )}
                             </Link>
                           ))}
                         </div>
