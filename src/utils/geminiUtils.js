@@ -1,16 +1,6 @@
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const a4fApiKey = import.meta.env.VITE_A4F_API_KEY;
-const a4fBaseUrl = 'https://api.a4f.co/v1';
-// const llm7BaseUrl = 'https://api.llm7.io/v1';
-
-const a4fClient = new OpenAI({
-  apiKey: a4fApiKey,
-  baseURL: a4fBaseUrl,
-  dangerouslyAllowBrowser: true,
-});
-
 // ============================================================================
 // UNIFIED LLM CLIENT CONFIGURATION
 // ============================================================================
@@ -131,9 +121,6 @@ export const llmClient = async ({
 
     const finalOptions = { ...defaultOptions, ...options };
 
-    // Check if this is a Gemini request (Google's API)
-    const isGeminiRequest = baseUrl.includes('generativelanguage.googleapis.com');
-
     let result;
     if (isGeminiRequest) {
       // Use Google Generative AI SDK for Gemini requests
@@ -252,6 +239,55 @@ export const llmClient = async ({
 };
 
 /**
+ * Generic text generation helper using AI providers
+ * @param {string} prompt - The prompt to send to AI
+ * @param {string} provider - AI provider to use (default: 'A4F')
+ * @param {string} model - Model key to use (default: 'GROK_4')
+ * @param {Object} options - Additional options for the AI call
+ * @returns {Promise<string>} Generated text response
+ */
+export const generateText = async (
+  prompt,
+  provider = 'A4F',
+  model = 'GROK_4',
+  options = {}
+) => {
+  return callWithProvider(provider, model, prompt, options);
+};
+
+/**
+ * Generic JSON generation helper using AI providers
+ * @param {string} prompt - The prompt to send to AI (should request JSON response)
+ * @param {string} provider - AI provider to use (default: 'A4F')
+ * @param {string} model - Model key to use (default: 'GROK_4')
+ * @param {Object} options - Additional options for the AI call
+ * @returns {Promise<Object>} Parsed JSON response
+ */
+export const generateJSON = async (
+  prompt,
+  provider = 'A4F',
+  model = 'GROK_4',
+  options = {}
+) => {
+  const response = await callWithProvider(provider, model, prompt, {
+    ...options,
+    responseFormat: 'json'
+  });
+
+  // Clean up the response to ensure it's valid JSON
+  const cleanedText = response
+    .replace(/```json\s*/g, "")
+    .replace(/```\s*$/g, "")
+    .trim();
+
+  try {
+    return JSON.parse(cleanedText);
+  } catch {
+    throw new Error("Failed to parse AI response as JSON. Please try again.");
+  }
+};
+
+/**
  * Quick helper to call LLM with a specific provider
  *
  * @param {string} providerName - Name of the provider (A4F, GEMINI, GROQ, OPENROUTER)
@@ -295,14 +331,20 @@ export const callWithProvider = async (
 };
 
 /**
- * Generate a book description using A4F AI
+ * Generate a book description using AI
  * @param {string} title - Book title
  * @param {string} author - Book author
+ * @param {string} provider - AI provider to use (default: 'A4F')
+ * @param {string} model - Model key to use (default: 'GROK_4')
  * @returns {Promise<string>} Generated description
  */
-export const generateBookDescription = async (title, author) => {
-  try {
-    const prompt = `Generate a compelling and informative book description for the following book:
+export const generateBookDescription = async (
+  title,
+  author,
+  provider = 'A4F',
+  model = 'GROK_4'
+) => {
+  const prompt = `Generate a compelling and informative book description for the following book:
 
 Title: ${title}
 Author: ${author || "Unknown"}
@@ -315,28 +357,24 @@ Please provide a description that includes:
 
 Make it engaging and suitable for a library catalog. Do not use any markdown formatting like **bold** or *italic* text. Write in plain text only.`;
 
-    const result = await a4fClient.chat.completions.create({
-      model: "provider-5/grok-4-0709",
-      messages: [
-        { role: "user", content: prompt },
-      ],
-    });
-
-    return result.choices[0].message.content.trim();
-  } catch {
-    throw new Error("Failed to generate description. Please try again.");
-  }
+  return generateText(prompt, provider, model);
 };
 
 /**
- * Generate a cover description for book cover design using A4F AI
+ * Generate a cover description for book cover design using AI
  * @param {string} title - Book title
  * @param {string} author - Book author
+ * @param {string} provider - AI provider to use (default: 'A4F')
+ * @param {string} model - Model key to use (default: 'LLAMA_3_2')
  * @returns {Promise<string>} Generated cover description
  */
-export const generateCoverDescription = async (title, author) => {
-  try {
-    const prompt = `Generate a creative and visually descriptive prompt for designing a book cover for:
+export const generateCoverDescription = async (
+  title,
+  author,
+  provider = 'A4F',
+  model = 'LLAMA_3_2'
+) => {
+  const prompt = `Generate a creative and visually descriptive prompt for designing a book cover for:
 
 Title: "${title}"
 Author: ${author || "Unknown"}
@@ -356,54 +394,47 @@ Example style: "Modern minimalist design with clean typography, cool blue and si
 
 Do not include any plot spoilers or story details - focus purely on visual design elements.`;
 
-    const result = await a4fClient.chat.completions.create({
-      model: "provider-6/llama-3.2-3b-instruct",
-      messages: [
-        { role: "user", content: prompt },
-      ],
-    });
-
-    return result.choices[0].message.content.trim();
-  } catch {
-    throw new Error("Failed to generate cover description. Please try again.");
-  }
+  return generateText(prompt, provider, model);
 };
 
 /**
  * Generate book recommendations based on user's borrowing history
  * @param {Array} userBorrowedBooks - Array of user's last borrowed books
  * @param {Array} topBooks - Array of top 50 books in the library
+ * @param {string} provider - AI provider to use (default: 'A4F')
+ * @param {string} model - Model key to use (default: 'GROK_4')
  * @returns {Promise<Array>} Array of recommended books with reasoning
  */
 export const generateBookRecommendations = async (
   userBorrowedBooks,
-  topBooks
+  topBooks,
+  provider = 'A4F',
+  model = 'GROK_4'
 ) => {
-  try {
-    const borrowedBooksText = userBorrowedBooks
-      .map(
-        (book) =>
-          `- "${book.title}" by ${book.author || "Unknown"} (${
-            book.description
-              ? book.description.substring(0, 100) + "..."
-              : "No description"
-          })`
-      )
-      .join("\n");
+  const borrowedBooksText = userBorrowedBooks
+    .map(
+      (book) =>
+        `- "${book.title}" by ${book.author || "Unknown"} (${
+          book.description
+            ? book.description.substring(0, 100) + "..."
+            : "No description"
+        })`
+    )
+    .join("\n");
 
-    const topBooksText = topBooks
-      .slice(0, 20)
-      .map(
-        (book) =>
-          `- "${book.title}" by ${book.author || "Unknown"} (${
-            book.description
-              ? book.description.substring(0, 100) + "..."
-              : "No description"
-          })`
-      )
-      .join("\n");
+  const topBooksText = topBooks
+    .slice(0, 20)
+    .map(
+      (book) =>
+        `- "${book.title}" by ${book.author || "Unknown"} (${
+          book.description
+            ? book.description.substring(0, 100) + "..."
+            : "No description"
+        })`
+    )
+    .join("\n");
 
-    const prompt = `Based on a user's borrowing history and the top books in our library, recommend 5-8 books they might enjoy.
+  const prompt = `Based on a user's borrowing history and the top books in our library, recommend 5-8 books they might enjoy.
 
 User's recently borrowed books:
 ${borrowedBooksText}
@@ -440,30 +471,7 @@ Only return the JSON array, no additional text.
 
 Before finalizing your recommendations, double-check that NONE of your recommended books appear in the user's borrowing history list above. If you find any matches, remove them from your final recommendations.`;
 
-    const result = await a4fClient.chat.completions.create({
-      model: "provider-5/grok-4-0709",
-      messages: [
-        { role: "user", content: prompt },
-      ],
-    });
-
-    const text = result.choices[0].message.content.trim();
-
-    // Clean up the response to ensure it's valid JSON
-    const cleanedText = text
-      .replace(/```json\s*/g, "")
-      .replace(/```\s*$/g, "")
-      .trim();
-
-    try {
-      const recommendations = JSON.parse(cleanedText);
-      return recommendations;
-    } catch {
-      throw new Error("Failed to parse AI recommendations. Please try again.");
-    }
-  } catch {
-    throw new Error("Failed to generate recommendations. Please try again.");
-  }
+  return generateJSON(prompt, provider, model);
 };
 
 /**
