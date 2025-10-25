@@ -417,7 +417,7 @@ export default function BookDetailsModal({ bookId, isOpen, onClose, onBookAction
                           className={`w-full font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
                             isBookmarked(bookId)
                               ? "bg-linear-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white"
-                              : "bg-linear-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white"
+                              : "bg-linear-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
                           }`}
                         >
                           <Heart className={`w-4 h-4 ${isBookmarked(bookId) ? "fill-current" : ""}`} />
