@@ -4,6 +4,10 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../supabase/supabaseClient';
 import { generateBookRecommendations, callWithProvider } from '../utils/geminiUtils';
 
+// Global AI configuration
+const DEFAULT_AI_PROVIDER = 'GROQ';
+const DEFAULT_AI_MODEL = 'KIMI_K2';
+
 const AIChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -137,7 +141,7 @@ Please provide:
 
 Keep the total summary under 200 words. Make it informative and enticing for someone considering reading this resource.`;
 
-      const response = await callWithProvider('GROQ', 'KIMI_K2', prompt);
+      const response = await callWithProvider(DEFAULT_AI_PROVIDER, DEFAULT_AI_MODEL, prompt);
       return response.trim();
     } catch (error) {
       console.error('Error generating resource summary:', error);
@@ -184,7 +188,7 @@ Return only a JSON array of the most similar resource titles (exactly as they ap
 
 Example response: ["Resource Title 1", "Resource Title 2", "Resource Title 3"]`;
 
-      const response = await callWithProvider('GROQ', 'KIMI_K2', prompt);
+      const response = await callWithProvider(DEFAULT_AI_PROVIDER, DEFAULT_AI_MODEL, prompt);
 
       // Clean up the response
       const cleanedText = response
@@ -300,7 +304,7 @@ Please provide:
 
 Keep the total summary under 200 words. Make it informative and enticing.`;
 
-      const response = await callWithProvider('GROQ', 'KIMI_K2', prompt);
+      const response = await callWithProvider(DEFAULT_AI_PROVIDER, DEFAULT_AI_MODEL, prompt);
       return response.trim();
     } catch (error) {
       console.error('Error generating book summary:', error);
@@ -340,7 +344,7 @@ Return only a JSON array of the most similar book titles (exactly as they appear
 
 Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
 
-      const response = await callWithProvider('GROQ', 'KIMI_K2', prompt);
+      const response = await callWithProvider(DEFAULT_AI_PROVIDER, DEFAULT_AI_MODEL, prompt);
 
       // Clean up the response
       const cleanedText = response
@@ -563,7 +567,7 @@ Assistant:`;
       let streamingResponse = '';
 
       // Get AI response using unified client with streaming
-      const response = await callWithProvider('GROQ', 'KIMI_K2', fullPrompt, {
+      const response = await callWithProvider(DEFAULT_AI_PROVIDER, DEFAULT_AI_MODEL, fullPrompt, {
         temperature: 0.7,
         maxTokens: 2000
       }, (chunk) => {
