@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "react-toastify";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { callWithProvider } from "../utils/geminiUtils";
 
 export default function ResourcesDetailsModal({ documentId, isOpen, onClose }) {
   const { role, loading: roleLoading } = useUserRole();
@@ -63,14 +63,9 @@ export default function ResourcesDetailsModal({ documentId, isOpen, onClose }) {
 
     setGeneratingSummary(true);
     try {
-      // Initialize Gemini AI
-      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
       const prompt = `Generate a comprehensive summary of the document titled "${document.name}". Based on the description: "${document.description || 'No description available'}". Create a detailed summary that captures the key points, main topics, and value of this document. Keep it informative and engaging.`;
 
-      const result = await model.generateContent(prompt);
-      const generatedSummary = result.response.text();
+      const generatedSummary = await callWithProvider('GEMINI', 'FLASH_2_5', prompt);
 
       setSummary(generatedSummary);
 

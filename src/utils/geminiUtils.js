@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const a4fApiKey = import.meta.env.VITE_A4F_API_KEY;
 const a4fBaseUrl = 'https://api.a4f.co/v1';
@@ -9,6 +10,289 @@ const a4fClient = new OpenAI({
   baseURL: a4fBaseUrl,
   dangerouslyAllowBrowser: true,
 });
+
+// ============================================================================
+// UNIFIED LLM CLIENT CONFIGURATION
+// ============================================================================
+
+/**
+ * Configuration for all supported AI providers
+ */
+export const LLM_PROVIDERS = {
+  A4F: {
+    baseUrl: 'https://api.a4f.co/v1',
+    apiKey: () => import.meta.env.VITE_A4F_API_KEY,
+    models: {
+      GROK_4: 'provider-5/grok-4-0709',
+      LLAMA_3_2: 'provider-6/llama-3.2-3b-instruct',
+      GPT_4O_MINI: 'provider-7/gpt-4o-mini',
+      CLAUDE_3_5_SONNET: 'provider-8/claude-3-5-sonnet-20241022',
+    },
+  },
+  GEMINI: {
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    apiKey: () => import.meta.env.VITE_GEMINI_API_KEY,
+    models: {
+      PRO_2_5: 'gemini-2.5-pro',
+      FLASH_2_5: 'gemini-2.5-flash',
+      FLASH_LITE_2_5: 'gemini-2.5-flash-lite',
+      FLASH_2_0: 'gemini-2.0-flash',
+    },
+  },
+  GROQ: {
+    baseUrl: 'https://api.groq.com/openai/v1',
+    apiKey: () => import.meta.env.VITE_GROQ_API_KEY,
+    models: {
+      LLAMA_3_1_70B: 'llama-3.1-70b-versatile',
+      LLAMA_3_1_8B: 'llama-3.1-8b-instant',
+      MIXTRAL_8x7B: 'mixtral-8x7b-32768',
+    },
+  },
+  OPENROUTER: {
+    baseUrl: 'https://openrouter.ai/api/v1',
+    apiKey: () => import.meta.env.VITE_OPENROUTER_API_KEY,
+    models: {
+      GPT_4O: 'openai/gpt-4o',
+      GPT_4O_MINI: 'openai/gpt-4o-mini',
+      CLAUDE_3_5_SONNET: 'anthropic/claude-3.5-sonnet',
+      GEMINI_PRO: 'google/gemini-pro',
+      GROK_1: 'xai/grok-1',
+    },
+  },
+};
+
+/**
+ * Unified LLM client for OpenAI-compatible APIs (Gemini, A4F, Groq, OpenRouter, etc.)
+ *
+ * @param {Object} config - Configuration object
+ * @param {string} config.prompt - The prompt/user message to send
+ * @param {string} config.model - The model name (e.g., 'gpt-4', 'gemini-2.5-flash', 'grok-4')
+ * @param {string} config.apiKey - API key for authentication
+ * @param {string} config.baseUrl - Base URL for the API endpoint
+ * @param {Object} config.options - Optional generation parameters
+ * @param {number} config.options.temperature - Temperature (0-2, default: 0.7)
+ * @param {number} config.options.maxTokens - Max tokens to generate (default: 2048)
+ * @param {string} config.options.responseFormat - Response format ('text' or 'json', default: 'text')
+ * @param {Array} config.messages - Optional: Custom messages array (overrides prompt)
+ * @param {string} config.systemPrompt - Optional: System prompt/instructions
+ * @returns {Promise<string>} - The LLM response text
+ *
+ * @example
+ * // Using with A4F
+ * const response = await llmClient({
+ *   prompt: "Explain quantum computing",
+ *   model: "provider-5/grok-4-0709",
+ *   apiKey: import.meta.env.VITE_A4F_API_KEY,
+ *   baseUrl: "https://api.a4f.co/v1"
+ * });
+ *
+ * @example
+ * // Using with Gemini via OpenAI-compatible endpoint
+ * const response = await llmClient({
+ *   prompt: "Write a poem",
+ *   model: "gemini-2.5-flash",
+ *   apiKey: import.meta.env.VITE_GEMINI_API_KEY,
+ *   baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai"
+ * });
+ */
+export const llmClient = async ({
+  prompt,
+  model,
+  apiKey,
+  baseUrl,
+  options = {},
+  messages = null,
+  systemPrompt = null,
+}) => {
+  // Check if this is a Gemini request (Google's API) - declare outside try block for catch access
+  const isGeminiRequest = baseUrl.includes('generativelanguage.googleapis.com');
+
+  try {
+    // Validate required parameters
+    if (!prompt && !messages) {
+      throw new Error('Either prompt or messages must be provided');
+    }
+    if (!model) {
+      throw new Error('Model is required');
+    }
+    if (!apiKey) {
+      throw new Error('API key is required');
+    }
+    if (!baseUrl) {
+      throw new Error('Base URL is required');
+    }
+
+    // Set default options
+    const defaultOptions = {
+      temperature: 0.7,
+      maxTokens: 2048,
+      responseFormat: 'text',
+    };
+
+    const finalOptions = { ...defaultOptions, ...options };
+
+    // Check if this is a Gemini request (Google's API)
+    const isGeminiRequest = baseUrl.includes('generativelanguage.googleapis.com');
+
+    let result;
+    if (isGeminiRequest) {
+      // Use Google Generative AI SDK for Gemini requests
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const geminiModel = genAI.getGenerativeModel({ model: model });
+
+      // Prepare the prompt
+      let fullPrompt = prompt;
+      if (systemPrompt) {
+        fullPrompt = `${systemPrompt}\n\n${prompt}`;
+      }
+
+      result = await geminiModel.generateContent(fullPrompt);
+      const response = await result.response;
+      const content = response.text();
+
+      if (!content) {
+        throw new Error('No content received from Gemini API');
+      }
+
+      return content.trim();
+    } else {
+      // Use OpenAI SDK for other providers
+      // Create OpenAI client for this request
+      const client = new OpenAI({
+        apiKey,
+        baseURL: baseUrl,
+        dangerouslyAllowBrowser: true,
+      });
+
+      // Prepare messages
+      let requestMessages = [];
+
+      if (messages) {
+        // Use provided messages array
+        requestMessages = messages;
+      } else {
+        // Build messages from prompt and system prompt
+        if (systemPrompt) {
+          requestMessages.push({
+            role: 'system',
+            content: systemPrompt,
+          });
+        }
+        requestMessages.push({
+          role: 'user',
+          content: prompt,
+        });
+      }
+
+      // Make the API call
+      result = await client.chat.completions.create({
+        model,
+        messages: requestMessages,
+        temperature: finalOptions.temperature,
+        max_tokens: finalOptions.maxTokens,
+        ...(finalOptions.responseFormat === 'json' && {
+          response_format: { type: 'json_object' },
+        }),
+      });
+
+      // Extract and return the response
+      const content = result.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No content received from API');
+      }
+
+      return content.trim();
+    }
+
+  } catch (error) {
+    // Enhanced error handling for both OpenAI and Gemini APIs
+    if (isGeminiRequest) {
+      // Handle Gemini API errors
+      if (error.message) {
+        if (error.message.includes('API_KEY_INVALID')) {
+          throw new Error('Authentication failed. Please check your Gemini API key.');
+        } else if (error.message.includes('RATE_LIMIT_EXCEEDED')) {
+          throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+        } else if (error.message.includes('MODEL_NOT_FOUND')) {
+          throw new Error(`Model "${model}" not found. Please check the model name.`);
+        } else {
+          throw new Error(`Gemini API error: ${error.message}`);
+        }
+      } else {
+        throw new Error('An unexpected error occurred with Gemini API. Please try again.');
+      }
+    } else {
+      // Handle OpenAI-compatible API errors
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+
+        if (status === 401 || status === 403) {
+          throw new Error('Authentication failed. Please check your API key.');
+        } else if (status === 429) {
+          throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+        } else if (status === 400) {
+          throw new Error(`Invalid request: ${data?.error?.message || 'Bad request'}`);
+        } else if (status === 404) {
+          throw new Error(`Model "${model}" not found. Please check the model name.`);
+        } else if (status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        } else {
+          throw new Error(`API error (${status}): ${data?.error?.message || 'Unknown error'}`);
+        }
+      } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+        throw new Error('Network connection failed. Please check your internet connection.');
+      } else if (error.message) {
+        throw error; // Re-throw if it's already a proper error message
+      } else {
+        throw new Error('An unexpected error occurred. Please try again.');
+      }
+    }
+  }
+};
+
+/**
+ * Quick helper to call LLM with a specific provider
+ *
+ * @param {string} providerName - Name of the provider (A4F, GEMINI, GROQ, OPENROUTER)
+ * @param {string} modelKey - Key of the model from the provider's models object
+ * @param {string} prompt - The prompt to send
+ * @param {Object} options - Optional parameters (temperature, maxTokens, etc.)
+ * @returns {Promise<string>} - The LLM response text
+ *
+ * @example
+ * const response = await callWithProvider('A4F', 'GROK_4', 'What is AI?');
+ * const geminiResponse = await callWithProvider('GEMINI', 'FLASH_2_5', 'Explain quantum computing');
+ */
+export const callWithProvider = async (
+  providerName,
+  modelKey,
+  prompt,
+  options = {}
+) => {
+  const provider = LLM_PROVIDERS[providerName];
+  if (!provider) {
+    throw new Error(`Provider "${providerName}" not found. Available providers: ${Object.keys(LLM_PROVIDERS).join(', ')}`);
+  }
+
+  const model = provider.models[modelKey];
+  if (!model) {
+    throw new Error(`Model "${modelKey}" not found for provider "${providerName}". Available models: ${Object.keys(provider.models).join(', ')}`);
+  }
+
+  const apiKey = provider.apiKey();
+  if (!apiKey) {
+    throw new Error(`API key for provider "${providerName}" is not configured. Please check your environment variables.`);
+  }
+
+  return llmClient({
+    prompt,
+    model,
+    apiKey,
+    baseUrl: provider.baseUrl,
+    options,
+  });
+};
 
 /**
  * Generate a book description using A4F AI
@@ -39,7 +323,7 @@ Make it engaging and suitable for a library catalog. Do not use any markdown for
     });
 
     return result.choices[0].message.content.trim();
-  } catch (error) {
+  } catch {
     throw new Error("Failed to generate description. Please try again.");
   }
 };
@@ -80,7 +364,7 @@ Do not include any plot spoilers or story details - focus purely on visual desig
     });
 
     return result.choices[0].message.content.trim();
-  } catch (error) {
+  } catch {
     throw new Error("Failed to generate cover description. Please try again.");
   }
 };
@@ -174,10 +458,10 @@ Before finalizing your recommendations, double-check that NONE of your recommend
     try {
       const recommendations = JSON.parse(cleanedText);
       return recommendations;
-    } catch (parseError) {
+    } catch {
       throw new Error("Failed to parse AI recommendations. Please try again.");
     }
-  } catch (error) {
+  } catch {
     throw new Error("Failed to generate recommendations. Please try again.");
   }
 };

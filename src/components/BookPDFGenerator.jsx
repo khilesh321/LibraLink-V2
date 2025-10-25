@@ -1,14 +1,11 @@
 import { useState } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { callWithProvider } from '../utils/geminiUtils';
 import jsPDF from 'jspdf';
 
 const BookPDFGenerator = () => {
   const [topic, setTopic] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [generatedBook, setGeneratedBook] = useState(null);
-
-  const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const generateBookContent = async () => {
     if (!topic.trim()) return;
@@ -25,9 +22,8 @@ Please format your response as JSON with the following structure:
 
 Make the title engaging and the description informative and enticing. The description should be suitable for a book cover or marketing material.`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const response = await callWithProvider('GEMINI', 'FLASH_2_5', prompt);
+      const text = response;
 
       // Parse the JSON response
       const jsonMatch = text.match(/\{[\s\S]*\}/);

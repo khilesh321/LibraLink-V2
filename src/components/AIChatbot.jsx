@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabase/supabaseClient';
-import { generateBookRecommendations } from '../utils/geminiUtils';
+import { generateBookRecommendations, callWithProvider } from '../utils/geminiUtils';
 
 const AIChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,69 +14,10 @@ const AIChatbot = () => {
       timestamp: new Date()
     }
   ]);
-  const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [streamingMessageId, setStreamingMessageId] = useState(null);
+  const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef(null);
-
-  const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ 
-    model: 'gemini-2.5-pro',
-    systemInstruction: `You are a helpful AI assistant for LibraLink, a comprehensive library management system. Your role is to assist users with:
-
-- Finding and recommending books based on their interests, genres, or authors
-- Explaining library policies, rules, and procedures
-- Helping with book searches and availability
-- Providing information about library services and features
-- Answering questions about book borrowing, returning, and renewal processes
-- Offering reading suggestions and literary advice
-- Assisting with general library navigation and usage
-
-SPECIAL COMMANDS YOU CAN HANDLE:
-1. BOOK SEARCH: When users ask to "find books about [topic]" or "search for [book name]", respond with a special command format: [BOOK_SEARCH:topic]
-2. BOOK SUMMARY: When users ask to "summarize [book title]" or "give me a summary of [book]", respond with: [BOOK_SUMMARY:book_title]
-3. BOOK RECOMMENDATIONS: When users ask for "recommendations" or "suggest books" without a specific topic, respond with: [BOOK_RECOMMENDATIONS]
-4. TOPIC RECOMMENDATIONS: When users ask for "recommend books on [topic]" or "suggest books about [subject]", respond with: [BOOK_RECOMMENDATIONS_BY_TOPIC:topic]
-5. SIMILAR BOOKS: When users ask for "books similar to [book title]" or "recommend similar books", respond with: [BOOK_SIMILAR:book_title]
-6. BOOK DETAILS: When users ask for details about a specific book or want to borrow/view a book, respond with: [BOOK_DETAILS:book_title_or_id] where you can use either the book title or the book UUID. The system will handle finding the correct book.
-7. RESOURCE SEARCH: When users ask to "find resources about [topic]" or "search for [resource name]" or "find PDFs about [topic]", respond with: [RESOURCE_SEARCH:topic]
-8. RESOURCE SUMMARY: When users ask to "summarize [resource title]" or "give me a summary of [resource]", respond with: [RESOURCE_SUMMARY:resource_title]
-9. RESOURCE RECOMMENDATIONS: When users ask for "resource recommendations" or "suggest resources" without a specific topic, respond with: [RESOURCE_RECOMMENDATIONS]
-10. RESOURCE TOPIC RECOMMENDATIONS: When users ask for "recommend resources on [topic]" or "suggest resources about [subject]", respond with: [RESOURCE_RECOMMENDATIONS_BY_TOPIC:topic]
-11. SIMILAR RESOURCES: When users ask for "resources similar to [resource title]" or "recommend similar resources", respond with: [RESOURCE_SIMILAR:resource_title]
-12. RESOURCE DETAILS: When users ask for details about a specific resource or want to read/view a resource, respond with: [RESOURCE_DETAILS:resource_title_or_id] where you can use either the resource title or the resource UUID. The system will handle finding the correct resource.
-
-LIBRARY PROCESSES AND INSTRUCTIONS:
-When users ask about borrowing books:
-- Explain that borrowing is done through QR code scanning
-- Books can be borrowed instantly with automated tracking
-- Users can view their borrowed books and due dates in "My Transactions"
-- Mention that real-time availability is shown
-
-When users ask about renewing books:
-- Renewal can be done with one click from the book details modal
-- Users can renew a book up to 2 times
-- After 2 renewals, the book must be returned
-- Due dates are automatically extended upon renewal
-
-When users ask about returning books:
-- Books are returned through the library system
-- Users will be prompted to rate the book after returning
-- Returned books become available for other users immediately
-
-When users ask about reading books:
-- For physical books: Users must borrow the book first, then can read it during the borrowing period
-- For digital resources (PDFs): Available in the Resources section with options to "Read Online" or "Read as Flipbook" for interactive experience
-- Digital resources can be accessed without borrowing
-
-Always be friendly, helpful, and knowledgeable about library operations. Remember user information and preferences throughout the conversation to provide personalized assistance. If you don't know something specific about the library's current inventory or policies, acknowledge this and suggest asking a librarian for the most up-to-date information.
-
-CONTENT FILTERING RULES:
-- NEVER recommend or display books/resources with titles containing words like: "test", "demo", "sample", "example", "my transactions", "admin", "system", "debug", "placeholder", "temporary", or similar internal/testing terms
-- Only recommend legitimate, user-appropriate books and resources from the actual library collection
-- If a search returns only filtered results, inform the user that no appropriate materials were found and suggest alternative search terms`});
-
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -180,8 +120,7 @@ CONTENT FILTERING RULES:
   // Function to generate resource summary
   const generateResourceSummary = async (resourceTitle) => {
     try {
-      const summaryModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-      const prompt = `Generate a concise and engaging summary of the resource "${resourceTitle}". 
+      const prompt = `Generate a concise and engaging summary of the resource "${resourceTitle}".
 
 Please provide:
 1. A brief overview (2-3 sentences) of what this resource covers
@@ -191,9 +130,8 @@ Please provide:
 
 Keep the total summary under 200 words. Make it informative and enticing for someone considering reading this resource.`;
 
-      const result = await summaryModel.generateContent(prompt);
-      const response = await result.response;
-      return response.text().trim();
+      const response = await callWithProvider('GEMINI', 'FLASH_2_0', prompt);
+      return response.trim();
     } catch (error) {
       console.error('Error generating resource summary:', error);
       return 'Sorry, I couldn\'t generate a summary for this resource right now.';
@@ -223,11 +161,9 @@ Keep the total summary under 200 words. Make it informative and enticing for som
       }
 
       // Use AI to find semantically similar resources
-      const similarResourcesModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-      
       const resourcesText = filteredResources
         .slice(0, 50) // Limit to 50 resources for the prompt
-        .map(resource => 
+        .map(resource =>
           `"${resource.name}" by ${resource.author || 'Unknown'}: ${resource.description || 'No description'}`
         )
         .join('\n');
@@ -241,12 +177,10 @@ Return only a JSON array of the most similar resource titles (exactly as they ap
 
 Example response: ["Resource Title 1", "Resource Title 2", "Resource Title 3"]`;
 
-      const result = await similarResourcesModel.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim();
+      const response = await callWithProvider('GEMINI', 'FLASH_2_0', prompt);
 
       // Clean up the response
-      const cleanedText = text
+      const cleanedText = response
         .replace(/```json\s*/g, "")
         .replace(/```\s*$/g, "")
         .trim();
@@ -257,7 +191,7 @@ Example response: ["Resource Title 1", "Resource Title 2", "Resource Title 3"]`;
       } catch (parseError) {
         console.error("Error parsing AI response:", parseError);
         // Fallback: try to extract resource titles from the text
-        const titleMatches = text.match(/"([^"]+)"/g);
+        const titleMatches = response.match(/"([^"]+)"/g);
         similarTitles = titleMatches ? titleMatches.map(match => match.slice(1, -1)) : [];
       }
 
@@ -349,8 +283,7 @@ Example response: ["Resource Title 1", "Resource Title 2", "Resource Title 3"]`;
   // Function to generate book summary
   const generateBookSummary = async (bookTitle) => {
     try {
-      const summaryModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-      const prompt = `Generate a concise and engaging summary of the book "${bookTitle}". 
+      const prompt = `Generate a concise and engaging summary of the book "${bookTitle}".
 
 Please provide:
 1. A brief overview (2-3 sentences)
@@ -360,9 +293,8 @@ Please provide:
 
 Keep the total summary under 200 words. Make it informative and enticing.`;
 
-      const result = await summaryModel.generateContent(prompt);
-      const response = await result.response;
-      return response.text().trim();
+      const response = await callWithProvider('GEMINI', 'FLASH_2_0', prompt);
+      return response.trim();
     } catch (error) {
       console.error('Error generating book summary:', error);
       return 'Sorry, I couldn\'t generate a summary for this book right now.';
@@ -385,11 +317,9 @@ Keep the total summary under 200 words. Make it informative and enticing.`;
       }
 
       // Use AI to find semantically similar books
-      const similarBooksModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-      
       const booksText = allBooks
         .slice(0, 50) // Limit to 50 books for the prompt
-        .map(book => 
+        .map(book =>
           `"${book.title}" by ${book.author || 'Unknown'}: ${book.description || 'No description'}`
         )
         .join('\n');
@@ -403,12 +333,10 @@ Return only a JSON array of the most similar book titles (exactly as they appear
 
 Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
 
-      const result = await similarBooksModel.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim();
+      const response = await callWithProvider('GEMINI', 'FLASH_2_0', prompt);
 
       // Clean up the response
-      const cleanedText = text
+      const cleanedText = response
         .replace(/```json\s*/g, "")
         .replace(/```\s*$/g, "")
         .trim();
@@ -419,7 +347,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
       } catch (parseError) {
         console.error("Error parsing AI response:", parseError);
         // Fallback: try to extract book titles from the text
-        const titleMatches = text.match(/"([^"]+)"/g);
+        const titleMatches = response.match(/"([^"]+)"/g);
         similarTitles = titleMatches ? titleMatches.map(match => match.slice(1, -1)) : [];
       }
 
@@ -540,49 +468,98 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
     setInputMessage('');
     setIsLoading(true);
 
-    // Create a placeholder AI message for streaming
+    // Create a placeholder AI message
     const aiMessageId = messages.length + 2;
     const aiMessage = {
       id: aiMessageId,
       text: '',
       sender: 'ai',
       timestamp: new Date(),
-      isStreaming: true
+      isStreaming: false
     };
 
     setMessages(prev => [...prev, aiMessage]);
-    setStreamingMessageId(aiMessageId);
 
     try {
-      // Start a chat session with conversation history
-      const chat = model.startChat({
-        history: messages
-          .filter(msg => msg.id > 1) // Exclude the initial greeting
-          .map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.text }]
-          }))
+      // Build conversation history for context
+      const conversationHistory = messages
+        .filter(msg => msg.id > 1) // Exclude the initial greeting
+        .map(msg => `${msg.sender === 'user' ? 'User' : 'Assistant'}: ${msg.text}`)
+        .join('\n\n');
+
+      // System instruction
+      const systemInstruction = `You are a helpful AI assistant for LibraLink, a comprehensive library management system. Your role is to assist users with:
+
+- Finding and recommending books based on their interests, genres, or authors
+- Explaining library policies, rules, and procedures
+- Helping with book searches and availability
+- Providing information about library services and features
+- Answering questions about book borrowing, returning, and renewal processes
+- Offering reading suggestions and literary advice
+- Assisting with general library navigation and usage
+
+SPECIAL COMMANDS YOU CAN HANDLE:
+1. BOOK SEARCH: When users ask to "find books about [topic]" or "search for [book name]", respond with a special command format: [BOOK_SEARCH:topic]
+2. BOOK SUMMARY: When users ask to "summarize [book title]" or "give me a summary of [book]", respond with: [BOOK_SUMMARY:book_title]
+3. BOOK RECOMMENDATIONS: When users ask for "recommendations" or "suggest books" without a specific topic, respond with: [BOOK_RECOMMENDATIONS]
+4. TOPIC RECOMMENDATIONS: When users ask for "recommend books on [topic]" or "suggest books about [subject]", respond with: [BOOK_RECOMMENDATIONS_BY_TOPIC:topic]
+5. SIMILAR BOOKS: When users ask for "books similar to [book title]" or "recommend similar books", respond with: [BOOK_SIMILAR:book_title]
+6. BOOK DETAILS: When users ask for details about a specific book or want to borrow/view a book, respond with: [BOOK_DETAILS:book_title_or_id] where you can use either the book title or the book UUID. The system will handle finding the correct book.
+7. RESOURCE SEARCH: When users ask to "find resources about [topic]" or "search for [resource name]" or "find PDFs about [topic]", respond with: [RESOURCE_SEARCH:topic]
+8. RESOURCE SUMMARY: When users ask to "summarize [resource title]" or "give me a summary of [resource]", respond with: [RESOURCE_SUMMARY:resource_title]
+9. RESOURCE RECOMMENDATIONS: When users ask for "resource recommendations" or "suggest resources" without a specific topic, respond with: [RESOURCE_RECOMMENDATIONS]
+10. RESOURCE TOPIC RECOMMENDATIONS: When users ask for "recommend resources on [topic]" or "suggest resources about [subject]", respond with: [RESOURCE_RECOMMENDATIONS_BY_TOPIC:topic]
+11. SIMILAR RESOURCES: When users ask for "resources similar to [resource title]" or "recommend similar resources", respond with: [RESOURCE_SIMILAR:resource_title]
+12. RESOURCE DETAILS: When users ask for details about a specific resource or want to read/view a resource, respond with: [RESOURCE_DETAILS:resource_title_or_id] where you can use either the resource title or the resource UUID. The system will handle finding the correct resource.
+
+LIBRARY PROCESSES AND INSTRUCTIONS:
+When users ask about borrowing books:
+- Explain that borrowing is done through QR code scanning
+- Books can be borrowed instantly with automated tracking
+- Users can view their borrowed books and due dates in "My Transactions"
+- Mention that real-time availability is shown
+
+When users ask about renewing books:
+- Renewal can be done with one click from the book details modal
+- Users can renew a book up to 2 times
+- After 2 renewals, the book must be returned
+- Due dates are automatically extended upon renewal
+
+When users ask about returning books:
+- Books are returned through the library system
+- Users will be prompted to rate the book after returning
+- Returned books become available for other users immediately
+
+When users ask about reading books:
+- For physical books: Users must borrow the book first, then can read it during the borrowing period
+- For digital resources (PDFs): Available in the Resources section with options to "Read Online" or "Read as Flipbook" for interactive experience
+- Digital resources can be accessed without borrowing
+
+Always be friendly, helpful, and knowledgeable about library operations. Remember user information and preferences throughout the conversation to provide personalized assistance. If you don't know something specific about the library's current inventory or policies, acknowledge this and suggest asking a librarian for the most up-to-date information.
+
+CONTENT FILTERING RULES:
+- NEVER recommend or display books/resources with titles containing words like: "test", "demo", "sample", "example", "my transactions", "admin", "system", "debug", "placeholder", "temporary", or similar internal/testing terms
+- Only recommend legitimate, user-appropriate books and resources from the actual library collection
+- If a search returns only filtered results, inform the user that no appropriate materials were found and suggest alternative search terms`;
+
+      // Build the full prompt with conversation history
+      const fullPrompt = `${systemInstruction}
+
+CONVERSATION HISTORY:
+${conversationHistory}
+
+User: ${inputMessage}
+
+Assistant:`;
+
+      // Get AI response using unified client
+      const response = await callWithProvider('GEMINI', 'FLASH_2_5', fullPrompt, {
+        temperature: 0.7,
+        maxTokens: 2000
       });
 
-      // Use streaming API
-      const result = await chat.sendMessageStream(inputMessage);
-      let accumulatedText = '';
-
-      // Process the stream
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
-        accumulatedText += chunkText;
-
-        // Update the streaming message
-        setMessages(prev => prev.map(msg =>
-          msg.id === aiMessageId
-            ? { ...msg, text: accumulatedText }
-            : msg
-        ));
-      }
-
-      // Process special commands after streaming is complete
-      let finalResponse = accumulatedText;
+      // Process special commands in the AI response
+      let finalResponse = response;
 
       // Check for special commands in the AI response
       if (finalResponse.includes('[BOOK_SEARCH:')) {
@@ -650,11 +627,11 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
         const detailsMatch = finalResponse.match(/\[BOOK_DETAILS:(.*?)\]/);
         if (detailsMatch) {
           const bookIdentifier = detailsMatch[1].trim();
-          
+
           // Check if it's a UUID (book ID) or a title
           const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           let bookId = bookIdentifier;
-          
+
           if (!uuidRegex.test(bookIdentifier)) {
             // It's a title, search for the book
             try {
@@ -663,7 +640,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                 .select('id, title, author')
                 .ilike('title', `%${bookIdentifier}%`)
                 .limit(1);
-              
+
               if (!error && books && books.length > 0) {
                 bookId = books[0].id;
                 finalResponse = `Here's the details for "${books[0].title}" by ${books[0].author || 'Unknown'}. [View Book Details](/book/${bookId})`;
@@ -712,11 +689,11 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
         const resourceDetailsMatch = finalResponse.match(/\[RESOURCE_DETAILS:(.*?)\]/);
         if (resourceDetailsMatch) {
           const resourceIdentifier = resourceDetailsMatch[1].trim();
-          
+
           // Check if it's a UUID (resource ID) or a title
           const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           let resourceId = resourceIdentifier;
-          
+
           if (!uuidRegex.test(resourceIdentifier)) {
             // It's a title, search for the resource
             try {
@@ -725,7 +702,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                 .select('id, name, author')
                 .ilike('name', `%${resourceIdentifier}%`)
                 .limit(1);
-              
+
               if (!error && resources && resources.length > 0) {
                 resourceId = resources[0].id;
                 finalResponse = `Here's the details for "${resources[0].name}" by ${resources[0].author || 'Unknown'}. [View Resource Details](/resource/${resourceId})`;
@@ -797,14 +774,15 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
           finalResponse = similarResources;
         }
       }
+
       setMessages(prev => prev.map(msg =>
         msg.id === aiMessageId
-          ? { ...msg, text: finalResponse, isStreaming: false }
+          ? { ...msg, text: finalResponse }
           : msg
       ));
 
     } catch (error) {
-      console.error('Error sending message to Gemini:', error);
+      console.error('Error sending message to AI:', error);
       const errorMessage = {
         id: messages.length + 2,
         text: "Sorry, I encountered an error. Please try again later.",
@@ -818,7 +796,6 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
       ));
     } finally {
       setIsLoading(false);
-      setStreamingMessageId(null);
     }
   };
 
@@ -1054,7 +1031,7 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
                 </div>
               </div>
             ))}
-            {isLoading && !streamingMessageId && (
+            {isLoading && (
               <div className="flex justify-start animate-in slide-in-from-bottom-2 fade-in duration-300">
                 <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-md shadow-sm">
                   <div className="flex items-center space-x-3">

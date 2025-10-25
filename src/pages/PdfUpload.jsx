@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../supabase/supabaseClient";
 import useUserRole from "../supabase/useUserRole";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { callWithProvider } from "../utils/geminiUtils";
 import { FileText, Wand2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { generateBookCover } from "../utils/geminiUtils";
@@ -82,10 +82,6 @@ export default function PdfUpload() {
 
     setGeneratingDescription(true);
     try {
-      // Initialize Gemini AI
-      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
       const prompt = `Write a single, engaging description for a PDF document titled "${documentName}" by ${author}.
 
 Requirements:
@@ -99,8 +95,7 @@ Requirements:
 
 Description:`;
 
-      const result = await model.generateContent(prompt);
-      const generatedDescription = result.response.text();
+      const generatedDescription = await callWithProvider('GEMINI', 'FLASH_2_5', prompt);
 
       setDescription(generatedDescription);
       toast.success("Description generated successfully!");
