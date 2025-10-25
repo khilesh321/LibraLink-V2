@@ -27,6 +27,13 @@ const AIChatbot = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Scroll to bottom when chat is opened
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [isOpen]);
+
   // Function to search books by topic or title
   const searchBooks = async (query) => {
     try {
