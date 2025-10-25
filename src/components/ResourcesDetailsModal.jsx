@@ -65,7 +65,7 @@ export default function ResourcesDetailsModal({ documentId, isOpen, onClose }) {
     try {
       const prompt = `Generate a comprehensive summary of the document titled "${document.name}". Based on the description: "${document.description || 'No description available'}". Create a detailed summary that captures the key points, main topics, and value of this document. Keep it informative and engaging.`;
 
-      const generatedSummary = await callWithProvider('GEMINI', 'FLASH_2_5', prompt);
+      const generatedSummary = await callWithProvider('GROQ', 'LLAMA_3_1_8B', prompt);
 
       setSummary(generatedSummary);
 

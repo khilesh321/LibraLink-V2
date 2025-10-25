@@ -95,7 +95,7 @@ Requirements:
 
 Description:`;
 
-      const generatedDescription = await callWithProvider('GEMINI', 'FLASH_2_5', prompt);
+      const generatedDescription = await callWithProvider('GROQ', 'LLAMA_3_1_8B', prompt);
 
       setDescription(generatedDescription);
       toast.success("Description generated successfully!");
