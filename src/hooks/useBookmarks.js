@@ -18,7 +18,7 @@ export const useBookmarks = () => {
       }
 
       setLoading(true);
-      const isCurrentlyBookmarked = bookmarks[bookId];
+      const isCurrentlyBookmarked = await isBookBookmarked(bookId);
 
       if (isCurrentlyBookmarked) {
         await removeBookmark(bookId);
@@ -42,7 +42,7 @@ export const useBookmarks = () => {
     } finally {
       setLoading(false);
     }
-  }, [bookmarks]);
+  }, []);
 
   // Check if a specific book is bookmarked
   const checkBookmarkStatus = useCallback(async (bookId) => {
