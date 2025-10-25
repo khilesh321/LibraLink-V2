@@ -65,6 +65,7 @@ export const LLM_PROVIDERS = {
  * @param {string} config.options.responseFormat - Response format ('text' or 'json', default: 'text')
  * @param {Array} config.messages - Optional: Custom messages array (overrides prompt)
  * @param {string} config.systemPrompt - Optional: System prompt/instructions
+ * @param {Function} config.onStream - Optional: Callback for streaming responses (chunk) => void
  * @returns {Promise<string>} - The LLM response text
  *
  * @example
@@ -84,6 +85,20 @@ export const LLM_PROVIDERS = {
  *   apiKey: import.meta.env.VITE_GEMINI_API_KEY,
  *   baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai"
  * });
+ *
+ * @example
+ * // Using with streaming
+ * let fullResponse = '';
+ * const response = await llmClient({
+ *   prompt: "Write a story",
+ *   model: "gemini-2.5-flash",
+ *   apiKey: import.meta.env.VITE_GEMINI_API_KEY,
+ *   baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+ *   onStream: (chunk) => {
+ *     fullResponse += chunk;
+ *     console.log('Received chunk:', chunk);
+ *   }
+ * });
  */
 export const llmClient = async ({
   prompt,
@@ -93,6 +108,7 @@ export const llmClient = async ({
   options = {},
   messages = null,
   systemPrompt = null,
+  onStream = null,
 }) => {
   // Check if this is a Gemini request (Google's API) - declare outside try block for catch access
   const isGeminiRequest = baseUrl.includes('generativelanguage.googleapis.com');
@@ -133,15 +149,32 @@ export const llmClient = async ({
         fullPrompt = `${systemPrompt}\n\n${prompt}`;
       }
 
-      result = await geminiModel.generateContent(fullPrompt);
-      const response = await result.response;
-      const content = response.text();
+      if (onStream) {
+        // Streaming response
+        result = await geminiModel.generateContentStream(fullPrompt);
+        let fullContent = '';
 
-      if (!content) {
-        throw new Error('No content received from Gemini API');
+        for await (const chunk of result.stream) {
+          const chunkText = chunk.text();
+          if (chunkText) {
+            fullContent += chunkText;
+            onStream(chunkText);
+          }
+        }
+
+        return fullContent.trim();
+      } else {
+        // Non-streaming response
+        result = await geminiModel.generateContent(fullPrompt);
+        const response = await result.response;
+        const content = response.text();
+
+        if (!content) {
+          throw new Error('No content received from Gemini API');
+        }
+
+        return content.trim();
       }
-
-      return content.trim();
     } else {
       // Use OpenAI SDK for other providers
       // Create OpenAI client for this request
@@ -171,24 +204,49 @@ export const llmClient = async ({
         });
       }
 
-      // Make the API call
-      result = await client.chat.completions.create({
-        model,
-        messages: requestMessages,
-        temperature: finalOptions.temperature,
-        max_tokens: finalOptions.maxTokens,
-        ...(finalOptions.responseFormat === 'json' && {
-          response_format: { type: 'json_object' },
-        }),
-      });
+      if (onStream) {
+        // Streaming response for OpenAI-compatible APIs
+        const stream = await client.chat.completions.create({
+          model,
+          messages: requestMessages,
+          temperature: finalOptions.temperature,
+          max_tokens: finalOptions.maxTokens,
+          ...(finalOptions.responseFormat === 'json' && {
+            response_format: { type: 'json_object' },
+          }),
+          stream: true,
+        });
 
-      // Extract and return the response
-      const content = result.choices[0]?.message?.content;
-      if (!content) {
-        throw new Error('No content received from API');
+        let fullContent = '';
+        for await (const chunk of stream) {
+          const chunkContent = chunk.choices[0]?.delta?.content;
+          if (chunkContent) {
+            fullContent += chunkContent;
+            onStream(chunkContent);
+          }
+        }
+
+        return fullContent.trim();
+      } else {
+        // Non-streaming response
+        result = await client.chat.completions.create({
+          model,
+          messages: requestMessages,
+          temperature: finalOptions.temperature,
+          max_tokens: finalOptions.maxTokens,
+          ...(finalOptions.responseFormat === 'json' && {
+            response_format: { type: 'json_object' },
+          }),
+        });
+
+        // Extract and return the response
+        const content = result.choices[0]?.message?.content;
+        if (!content) {
+          throw new Error('No content received from API');
+        }
+
+        return content.trim();
       }
-
-      return content.trim();
     }
 
   } catch (error) {
@@ -294,17 +352,25 @@ export const generateJSON = async (
  * @param {string} modelKey - Key of the model from the provider's models object
  * @param {string} prompt - The prompt to send
  * @param {Object} options - Optional parameters (temperature, maxTokens, etc.)
+ * @param {Function} onStream - Optional callback for streaming responses (chunk) => void
  * @returns {Promise<string>} - The LLM response text
  *
  * @example
  * const response = await callWithProvider('A4F', 'GROK_4', 'What is AI?');
  * const geminiResponse = await callWithProvider('GEMINI', 'FLASH_2_5', 'Explain quantum computing');
+ * // With streaming
+ * let fullResponse = '';
+ * const streamingResponse = await callWithProvider('GEMINI', 'FLASH_2_5', 'Tell me a story', {}, (chunk) => {
+ *   fullResponse += chunk;
+ *   console.log('Chunk:', chunk);
+ * });
  */
 export const callWithProvider = async (
   providerName,
   modelKey,
   prompt,
-  options = {}
+  options = {},
+  onStream = null
 ) => {
   const provider = LLM_PROVIDERS[providerName];
   if (!provider) {
@@ -327,6 +393,7 @@ export const callWithProvider = async (
     apiKey,
     baseUrl: provider.baseUrl,
     options,
+    onStream,
   });
 };
 

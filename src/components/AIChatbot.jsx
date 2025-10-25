@@ -468,14 +468,14 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
     setInputMessage('');
     setIsLoading(true);
 
-    // Create a placeholder AI message
+    // Create a placeholder AI message with streaming enabled
     const aiMessageId = messages.length + 2;
     const aiMessage = {
       id: aiMessageId,
       text: '',
       sender: 'ai',
       timestamp: new Date(),
-      isStreaming: false
+      isStreaming: true
     };
 
     setMessages(prev => [...prev, aiMessage]);
@@ -552,11 +552,29 @@ User: ${inputMessage}
 
 Assistant:`;
 
-      // Get AI response using unified client
+      // Store the streaming response
+      let streamingResponse = '';
+
+      // Get AI response using unified client with streaming
       const response = await callWithProvider('GEMINI', 'FLASH_2_5', fullPrompt, {
         temperature: 0.7,
         maxTokens: 2000
+      }, (chunk) => {
+        // Handle streaming chunks
+        streamingResponse += chunk;
+        setMessages(prev => prev.map(msg =>
+          msg.id === aiMessageId
+            ? { ...msg, text: streamingResponse }
+            : msg
+        ));
       });
+
+      // Mark streaming as complete
+      setMessages(prev => prev.map(msg =>
+        msg.id === aiMessageId
+          ? { ...msg, isStreaming: false }
+          : msg
+      ));
 
       // Process special commands in the AI response
       let finalResponse = response;
@@ -787,7 +805,8 @@ Assistant:`;
         id: messages.length + 2,
         text: "Sorry, I encountered an error. Please try again later.",
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        isStreaming: false
       };
       setMessages(prev => prev.map(msg =>
         msg.id === aiMessageId
