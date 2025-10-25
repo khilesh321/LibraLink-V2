@@ -130,7 +130,7 @@ Please provide:
 
 Keep the total summary under 200 words. Make it informative and enticing for someone considering reading this resource.`;
 
-      const response = await callWithProvider('GEMINI', 'FLASH_2_0', prompt);
+      const response = await callWithProvider('GEMINI', 'FLASH_2_5', prompt);
       return response.trim();
     } catch (error) {
       console.error('Error generating resource summary:', error);
@@ -177,7 +177,7 @@ Return only a JSON array of the most similar resource titles (exactly as they ap
 
 Example response: ["Resource Title 1", "Resource Title 2", "Resource Title 3"]`;
 
-      const response = await callWithProvider('GEMINI', 'FLASH_2_0', prompt);
+      const response = await callWithProvider('GEMINI', 'FLASH_2_5', prompt);
 
       // Clean up the response
       const cleanedText = response
@@ -293,7 +293,7 @@ Please provide:
 
 Keep the total summary under 200 words. Make it informative and enticing.`;
 
-      const response = await callWithProvider('GEMINI', 'FLASH_2_0', prompt);
+      const response = await callWithProvider('GEMINI', 'FLASH_2_5', prompt);
       return response.trim();
     } catch (error) {
       console.error('Error generating book summary:', error);
@@ -333,7 +333,7 @@ Return only a JSON array of the most similar book titles (exactly as they appear
 
 Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
 
-      const response = await callWithProvider('GEMINI', 'FLASH_2_0', prompt);
+      const response = await callWithProvider('GEMINI', 'FLASH_2_5', prompt);
 
       // Clean up the response
       const cleanedText = response
