@@ -33,8 +33,7 @@ export const LLM_PROVIDERS = {
     baseUrl: 'https://api.groq.com/openai/v1',
     apiKey: () => import.meta.env.VITE_GROQ_API_KEY,
     models: {
-      LLAMA_3_1_70B: 'llama-3.1-70b-versatile',
-      LLAMA_3_1_8B: 'llama-3.1-8b-instant',
+      LLAMA_3_3_70B: 'llama-3.3-70b-versatile',
       MIXTRAL_8x7B: 'mixtral-8x7b-32768',
       KIMI_K2: 'moonshotai/kimi-k2-instruct-0905',
       GROQ_COMPOUND: 'groq/compound',
@@ -528,8 +527,8 @@ Do not include any plot spoilers or story details - focus purely on visual desig
 export const generateBookRecommendations = async (
   userBorrowedBooks,
   topBooks,
-  provider = 'A4F',
-  model = 'GROK_4'
+  provider = 'GROQ',
+  model = 'KIMI_K2'
 ) => {
   const borrowedBooksText = userBorrowedBooks
     .map(
