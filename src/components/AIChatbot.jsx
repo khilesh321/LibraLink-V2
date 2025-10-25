@@ -13,7 +13,26 @@ const AIChatbot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm your AI assistant for LibraLink Library Management System. I can help you find books, explain library policies, and assist with any questions about our services. How can I help you today?",
+      text: `## 👋 Welcome to LibraLink AI Assistant!
+
+Hello! I'm your intelligent library companion for the **LibraLink Library Management System**. I'm here to make your library experience amazing! 📚
+
+### What I can help you with:
+- 🔍 **Find Books & Resources**: Search by title, author, topic, or genre
+- 📖 **Get Summaries**: Detailed overviews of books and resources
+- 💡 **Personalized Recommendations**: Books similar to ones you love
+- 📋 **Library Policies**: Borrowing, returning, and renewal information
+- 🎯 **Reading Suggestions**: Curated recommendations based on your interests
+- ❓ **Answer Questions**: Anything about library services and features
+
+### Quick Start:
+Just type your question or request! For example:
+- *"Find books about artificial intelligence"*
+- *"What books are similar to 'The Great Gatsby'?"*
+- *"How do I borrow a book?"*
+- *"Recommend some mystery novels"*
+
+I'm here 24/7 to help you discover your next great read! What would you like to explore today? ✨`,
       sender: 'ai',
       timestamp: new Date()
     }
