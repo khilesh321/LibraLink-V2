@@ -131,15 +131,28 @@ const AIChatbot = () => {
   // Function to generate resource summary
   const generateResourceSummary = async (resourceTitle) => {
     try {
-      const prompt = `Generate a concise and engaging summary of the resource "${resourceTitle}".
+      const prompt = `Generate a concise and engaging summary of the resource "${resourceTitle}" in markdown format.
 
-Please provide:
-1. A brief overview (2-3 sentences) of what this resource covers
-2. Main topics or subjects discussed
-3. Who would benefit from reading this resource
-4. Key takeaways or important concepts covered
+Please provide the summary using this markdown structure:
+## 📚 Resource Summary: ${resourceTitle}
 
-Keep the total summary under 200 words. Make it informative and enticing for someone considering reading this resource.`;
+### Overview
+[2-3 sentences describing what this resource covers]
+
+### Key Topics
+- [Main topic 1]
+- [Main topic 2]
+- [Main topic 3]
+
+### Target Audience
+[Who would benefit from reading this resource]
+
+### Key Takeaways
+- [Important concept 1]
+- [Important concept 2]
+- [Important concept 3]
+
+Keep the total summary under 200 words. Make it informative and enticing for someone considering reading this resource. Use proper markdown formatting with headers, bullet points, and bold text where appropriate.`;
 
       const response = await callWithProvider(DEFAULT_AI_PROVIDER, DEFAULT_AI_MODEL, prompt);
       return response.trim();
@@ -184,41 +197,22 @@ Keep the total summary under 200 words. Make it informative and enticing for som
 Resources in our library:
 ${resourcesText}
 
-Return only a JSON array of the most similar resource titles (exactly as they appear in the list above). Return at most 5 resources. If no similar resources are found, return an empty array.
+Return a markdown-formatted list of the most similar resources. Format your response like this:
 
-Example response: ["Resource Title 1", "Resource Title 2", "Resource Title 3"]`;
+## 📚 Similar Resources to "${resourceTitle}"
+
+Here are some resources you might enjoy based on your interest in "${resourceTitle}":
+
+1. **[Resource Title 1](/resource/id)** by Author Name
+   *Brief description of the resource and why it's similar*
+
+2. **[Resource Title 2](/resource/id)** by Author Name  
+   *Brief description of the resource and why it's similar*
+
+Return at most 5 resources. If no similar resources are found, return a message saying so. Use proper markdown formatting with headers, bold text, and links.`;
 
       const response = await callWithProvider(DEFAULT_AI_PROVIDER, DEFAULT_AI_MODEL, prompt);
-
-      // Clean up the response
-      const cleanedText = response
-        .replace(/```json\s*/g, "")
-        .replace(/```\s*$/g, "")
-        .trim();
-
-      let similarTitles;
-      try {
-        similarTitles = JSON.parse(cleanedText);
-      } catch (parseError) {
-        console.error("Error parsing AI response:", parseError);
-        // Fallback: try to extract resource titles from the text
-        const titleMatches = response.match(/"([^"]+)"/g);
-        similarTitles = titleMatches ? titleMatches.map(match => match.slice(1, -1)) : [];
-      }
-
-      // Find the actual resource objects
-      const similarResources = similarTitles
-        .map(title => filteredResources.find(resource => resource.name === title))
-        .filter(Boolean)
-        .slice(0, 5);
-
-      if (similarResources.length === 0) {
-        return `I couldn't find any similar resources to "${resourceTitle}" in our library. Would you like me to search for resources on a related topic instead?`;
-      }
-
-      return `Here are some resources similar to "${resourceTitle}" that are currently available:\n\n${similarResources.map((resource, index) =>
-        `${index + 1}. **[${resource.name}](/resource/${resource.id})** by ${resource.author || 'Unknown'}\n   ${resource.description ? resource.description.substring(0, 100) + '...' : 'No description available'}`
-      ).join('\n\n')}\n\nWould you like me to help you access any of these resources?`;
+      return response.trim();
     } catch (error) {
       console.error('Error finding similar resources:', error);
       return [];
@@ -294,15 +288,26 @@ Example response: ["Resource Title 1", "Resource Title 2", "Resource Title 3"]`;
   // Function to generate book summary
   const generateBookSummary = async (bookTitle) => {
     try {
-      const prompt = `Generate a concise and engaging summary of the book "${bookTitle}".
+      const prompt = `Generate a concise and engaging summary of the book "${bookTitle}" in markdown format.
 
-Please provide:
-1. A brief overview (2-3 sentences)
-2. Main themes or topics covered
-3. Why someone might enjoy reading it
-4. Target audience
+Please provide the summary using this markdown structure:
+## 📖 Book Summary: ${bookTitle}
 
-Keep the total summary under 200 words. Make it informative and enticing.`;
+### Overview
+[2-3 sentences describing the book's plot/content]
+
+### Main Themes
+- [Theme 1]
+- [Theme 2]
+- [Theme 3]
+
+### Why You'll Enjoy It
+[Why someone might enjoy reading this book]
+
+### Target Audience
+[Who this book is best suited for]
+
+Keep the total summary under 200 words. Make it informative and enticing. Use proper markdown formatting with headers, bullet points, and bold text where appropriate.`;
 
       const response = await callWithProvider(DEFAULT_AI_PROVIDER, DEFAULT_AI_MODEL, prompt);
       return response.trim();
@@ -340,50 +345,22 @@ Keep the total summary under 200 words. Make it informative and enticing.`;
 Books in our library:
 ${booksText}
 
-Return only a JSON array of the most similar book titles (exactly as they appear in the list above). Return at most 5 books. If no similar books are found, return an empty array.
+Return a markdown-formatted list of the most similar books. Format your response like this:
 
-Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
+## 📚 Similar Books to "${bookTitle}"
+
+Here are some books you might enjoy based on your interest in "${bookTitle}":
+
+1. **[Book Title 1](/book/id)** by Author Name
+   *Brief description of the book and why it's similar*
+
+2. **[Book Title 2](/book/id)** by Author Name  
+   *Brief description of the book and why it's similar*
+
+Return at most 5 books. If no similar books are found, return a message saying so. Use proper markdown formatting with headers, bold text, and links.`;
 
       const response = await callWithProvider(DEFAULT_AI_PROVIDER, DEFAULT_AI_MODEL, prompt);
-
-      // Clean up the response
-      const cleanedText = response
-        .replace(/```json\s*/g, "")
-        .replace(/```\s*$/g, "")
-        .trim();
-
-      let similarTitles;
-      try {
-        similarTitles = JSON.parse(cleanedText);
-      } catch (parseError) {
-        console.error("Error parsing AI response:", parseError);
-        // Fallback: try to extract book titles from the text
-        const titleMatches = response.match(/"([^"]+)"/g);
-        similarTitles = titleMatches ? titleMatches.map(match => match.slice(1, -1)) : [];
-      }
-
-      // Find the actual book objects and check availability
-      const similarBooks = similarTitles
-        .map(title => allBooks.find(book => book.title === title))
-        .filter(Boolean)
-        .slice(0, 5);
-
-      // Check availability for each book
-      const availableSimilarBooks = await Promise.all(
-        similarBooks.map(async (book) => {
-          try {
-            const { data: available, error: availError } = await supabase.rpc(
-              'is_book_available',
-              { book_uuid: book.id }
-            );
-            return { ...book, available: availError ? true : available };
-          } catch {
-            return { ...book, available: true };
-          }
-        })
-      );
-
-      return availableSimilarBooks.filter(book => book.available);
+      return response.trim();
     } catch (error) {
       console.error('Error finding similar books:', error);
       return [];
@@ -501,6 +478,19 @@ Example response: ["Book Title 1", "Book Title 2", "Book Title 3"]`;
       // System instruction
       const systemInstruction = `You are a helpful AI assistant for LibraLink, a comprehensive library management system. Your role is to assist users with:
 
+RESPONSE FORMATTING:
+- Always format your responses using proper Markdown syntax
+- Use headers (##, ###) for organizing information
+- Use bullet points (-) and numbered lists (1., 2., 3.) for clarity
+- Use **bold text** for emphasis and book/resource titles
+- Use *italic text* for subtle emphasis
+- Use proper links for book and resource references: [Book Title](/book/id) or [Resource Title](/resource/id)
+- Use emojis sparingly but effectively (📚 for books, 📖 for reading, 🔍 for search, etc.)
+- Keep responses well-structured and easy to read
+- For lists of books/resources, use consistent formatting with proper spacing
+
+Your capabilities include:
+
 - Finding and recommending books based on their interests, genres, or authors
 - Explaining library policies, rules, and procedures
 - Helping with book searches and availability
@@ -616,15 +606,8 @@ Assistant:`;
         const similarMatch = finalResponse.match(/\[BOOK_SIMILAR:(.*?)\]/);
         if (similarMatch) {
           const bookTitle = similarMatch[1].trim();
-          const similarBooks = await findSimilarBooks(bookTitle);
-
-          if (similarBooks.length === 0) {
-            finalResponse = `I'm sorry, but there are no similar books currently available to "${bookTitle}" in our library. Would you like me to search for a different topic or help you find books in a related area?`;
-          } else {
-            finalResponse = `Here are some books similar to "${bookTitle}" that are currently available:\n\n${similarBooks.map((book, index) =>
-              `${index + 1}. **[${book.title}](/book/${book.id})** by ${book.author || 'Unknown'}\n   ${book.description ? book.description.substring(0, 100) + '...' : 'No description available'}`
-            ).join('\n\n')}\n\nWould you like me to help you borrow any of these books?`;
-          }
+          const similarBooksResponse = await findSimilarBooks(bookTitle);
+          finalResponse = similarBooksResponse;
         }
       } else if (finalResponse.includes('[BOOK_RECOMMENDATIONS_BY_TOPIC:')) {
         const topicMatch = finalResponse.match(/\[BOOK_RECOMMENDATIONS_BY_TOPIC:(.*?)\]/);
