@@ -552,8 +552,8 @@ export default function Books() {
                         className="w-full h-full max-sm:object-cover md:absolute z-10 md:group-hover:scale-x-0 mx-auto transition duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                        <span className="text-gray-500 text-sm">No Cover</span>
+                      <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
+                        <span className="text-gray-500 font-medium text-sm">No Cover</span>
                       </div>
                     )}
                   </div>
