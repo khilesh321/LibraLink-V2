@@ -10,7 +10,7 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [generatingDescription, setGeneratingDescription] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("provider-4/qwen-image");
+  const [selectedModel, setSelectedModel] = useState("provider-5/midjourney-v7");
 
   const handleGenerateCover = async (e) => {
     e.preventDefault();
@@ -170,10 +170,10 @@ export default function BookCoverGenerator({ initialTitle = "", initialAuthor = 
                       onChange={(e) => setSelectedModel(e.target.value)}
                       className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 bg-white appearance-none cursor-pointer"
                     >
-                      <option value="provider-4/qwen-image">🎨 Qwen Image - Creative & Artistic (Recommended)</option>
+                      <option value="provider-5/midjourney-v7">✨ Midjourney V7 - Artistic & Abstract Design (Recommended)</option>
+                      <option value="provider-4/qwen-image">🎨 Qwen Image - Creative & Artistic</option>
                       <option value="provider-4/imagen-4">✨ Imagen 4 - Clean & Minimal Design</option>
                       <option value="provider-4/imagen-3">✨ Imagen 3 - Clean & Minimal Design</option>
-                      <option value="provider-5/midjourney-v7">✨ Midjourney V7 - Artistic & Abstract Design</option>
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
