@@ -358,8 +358,8 @@ export const llmClient = async ({
  */
 export const generateText = async (
   prompt,
-  provider = 'A4F',
-  model = 'GROK_4',
+  provider = 'GROQ',
+  model = 'GROQ_COMPOUND',
   options = {}
 ) => {
   return callWithProvider(provider, model, prompt, options);
@@ -375,8 +375,8 @@ export const generateText = async (
  */
 export const generateJSON = async (
   prompt,
-  provider = 'A4F',
-  model = 'GROK_4',
+  provider = 'GROQ',
+  model = 'KIMI_K2',
   options = {}
 ) => {
   const response = await callWithProvider(provider, model, prompt, {
@@ -460,8 +460,8 @@ export const callWithProvider = async (
 export const generateBookDescription = async (
   title,
   author,
-  provider = 'A4F',
-  model = 'GROK_4'
+  provider = 'GROQ',
+  model = 'GROQ_COMPOUND'
 ) => {
   const prompt = `Generate a compelling and informative book description for the following book:
 
@@ -490,8 +490,8 @@ Make it engaging and suitable for a library catalog. Do not use any markdown for
 export const generateCoverDescription = async (
   title,
   author,
-  provider = 'A4F',
-  model = 'LLAMA_3_2'
+  provider = 'GROQ',
+  model = 'GPT_OSS_20B'
 ) => {
   const prompt = `Generate a creative and visually descriptive prompt for designing a book cover for:
 
